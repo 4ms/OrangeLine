@@ -250,10 +250,10 @@ struct Morpheus : Module
 		if (getInputConnected(LOOP_LEN_INPUT)) {
 			int channels = inputs[LOOP_LEN_INPUT].getChannels();
             if (channels == 1) {
-				loopLen = floor(OL_statePoly[LOOP_LEN_INPUT * POLY_CHANNELS] * 100.f); // input is scaled so 0.16 is length 16
+				loopLen = floor(OL_statePoly[LOOP_LEN_INPUT * POLY_CHANNELS] * 100.f + 0.001); // input is scaled so 0.16 is length 16
             }
 			else if (channels >= channel) {
-				loopLen = floor(OL_statePoly[LOOP_LEN_INPUT * POLY_CHANNELS + channel] * 100.f); // input is scaled so 0.16 is length 16
+				loopLen = floor(OL_statePoly[LOOP_LEN_INPUT * POLY_CHANNELS + channel] * 100.f + 0.001); // input is scaled so 0.16 is length 16
             }
 		}
 		if (loopLen < 1.f) {
