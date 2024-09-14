@@ -45,6 +45,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define CHG_CV_IN   (1 << 5)
 #define CHG_TRG_IN  (1 << 6)
 
+#define CHILD_CV_ROOT_BASED 0.f
+#define CHILD_CV_IN_SCALE   1.f
+
 #define CLIPBOARD_EMPTY 0
 #define CLIPBOARD_SCALE 1
 #define CLIPBOARD_CHILD 2
@@ -74,6 +77,8 @@ enum jsonIds {
 	POW_SCALE_BASE_JSON,
 	POW_SCALE_STEP_JSON,
 	POW_PACK_SCALE_JSON,
+	CHILD_CV_MODE_JSON,
+
 	NUM_JSONS
 };
 

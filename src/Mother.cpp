@@ -89,6 +89,8 @@ struct Mother : Module
 	float clipboardChild[NUM_NOTES];
 	float clipboardState = CLIPBOARD_EMPTY;
 
+	bool flagSetHeadScale = false;
+
 #include "MotherJsonLabels.hpp"
 #include "MotherScales.hpp"
 
@@ -290,6 +292,7 @@ struct Mother : Module
 		setStateJson(POW_SCALE_BASE_JSON, 0.f);
 		setStateJson(POW_SCALE_STEP_JSON, 1.f);
 		setStateJson(POW_PACK_SCALE_JSON, 0.f);
+		setStateJson(CHILD_CV_MODE_JSON, 0.f);
 	}
 
 	// ********************************************************************************************************************************
@@ -800,9 +803,17 @@ struct Mother : Module
 
 	inline void moduleProcessState()
 	{
+		effectiveRoot = (int(getStateParam (ROOT_PARAM)) + note (getClampedInput(ROOT_INPUT))) % NUM_NOTES;
+		effectiveRootOct = floor(getClampedInput(ROOT_INPUT) / 12);
 		effectiveScale = (int(getStateParam(SCL_PARAM)) - 1 + note(getClampedInput(SCL_INPUT))) % NUM_NOTES;
 		effectiveScaleDisplay = float(effectiveScale + 1);
 		effectiveChild = (int(getStateParam (CHLD_PARAM)) + note (getClampedInput(CHLD_INPUT))) % NUM_NOTES;
+		/*
+		 	Now we have a Root based effectiveChild, we have to modify ir if we run in Child CV Mode 'In scale'
+		*/
+		if (getStateJson(CHILD_CV_MODE_JSON) == CHILD_CV_IN_SCALE) {
+			effectiveChild = (NUM_NOTES + effectiveChild - effectiveRoot) % NUM_NOTES;
+		}
 		/*
 			quantize down to next lower active note if effectiveChild is not in scale
 		*/
@@ -814,8 +825,6 @@ struct Mother : Module
 				break;
 			effectiveChild--;
 		}
-		effectiveRoot = (int(getStateParam (ROOT_PARAM)) + note (getClampedInput(ROOT_INPUT))) % NUM_NOTES;
-		effectiveRootOct = floor(getClampedInput(ROOT_INPUT) / 12);
 
 		jsonOnOffBaseIdx = ONOFF_JSON + effectiveScale * NUM_NOTES;
 		int jsonIdx = 0;
@@ -1158,8 +1167,11 @@ struct Mother : Module
 	*/
 	inline void moduleReflectChanges()
 	{
-		if ((customChangeBits & (CHG_ONOFF | CHG_SCL | CHG_CHLD)) && initialized)
+		if ((customChangeBits & (CHG_ONOFF | CHG_SCL | CHG_CHLD | CHG_ROOT)) && initialized || flagSetHeadScale)
+		{
 			setHeadScale();
+			flagSetHeadScale = false;
+		}
 		else
 		{
 			if (!initialized)
@@ -1534,6 +1546,44 @@ struct MotherWidget : ModuleWidget
 		}
 	};
 
+	struct ChildCvModeItem: MenuItem
+	{
+		Mother *module;
+
+		struct ModeItem : MenuItem
+		{
+			Mother *module;
+			int mode;
+			void onAction(const event::Action &e) override
+			{
+				module->OL_setOutState(CHILD_CV_MODE_JSON, float(mode));
+				module->flagSetHeadScale = true;;
+			}
+			void step() override
+			{
+				if (module)
+					rightText = (module != nullptr && module->OL_state[CHILD_CV_MODE_JSON] == float(mode)) ? "✔" : "";
+			}
+		};
+
+		Menu *createChildMenu() override
+		{
+			Menu *menu = new Menu;
+			ModeItem *modeItem;
+			for (int mode = 0; mode < 2; mode++)
+			{
+
+				modeItem = new ModeItem();
+				modeItem->module = module;
+				modeItem->mode = mode;
+				modeItem->text = mode == 0 ? "Root Based" : "In Scale";
+				modeItem->setSize(Vec(110, 20));
+
+				menu->addChild(modeItem);
+			}
+			return menu;
+		}
+	};
 	struct ScaleStepItem : MenuItem
 	{
 		Mother *module;
@@ -1821,6 +1871,12 @@ struct MotherWidget : ModuleWidget
 			motherCBasedDisplayItem->module = module;
 			motherCBasedDisplayItem->text = "C Based Display";
 			menu->addChild(motherCBasedDisplayItem);
+
+			ChildCvModeItem *childCvModeItem = new ChildCvModeItem();
+			childCvModeItem->module = module;
+			childCvModeItem->text = "Child CV Mode";
+			childCvModeItem->rightText = RIGHT_ARROW;
+			menu->addChild(childCvModeItem);
 
 			spacerLabel = new MenuLabel();
 			menu->addChild(spacerLabel);
