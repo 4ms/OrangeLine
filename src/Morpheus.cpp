@@ -463,6 +463,9 @@ struct Morpheus : Module
 			for (int i = HEAD_JSON; i < HEAD_JSON + POLY_CHANNELS; i++) {
 				setStateJson(i, 0.f);
 			}
+			for (int channel = 0; channel < getOutPolyChannels(GATE_OUTPUT); channel ++) {
+				outputs[GATE_OUTPUT].setVoltage (0.f, channel);
+			}
 			hadReset = true;
 		}
 
