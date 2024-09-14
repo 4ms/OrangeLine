@@ -68,6 +68,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define NORMAL_MODE_ONE    1
 #define NORMAL_MODE_LAST   2
 
+#define SEMITONE       (1.f / 12.f)
+
 /*
 	Random implementation derived from the one used in Frozen Wastland Seeds of Change
 */
@@ -195,6 +197,8 @@ typedef struct OrangeLineRandom {
 }
 
 #define PANELHEIGHT 128.5f
+
+#define OFFSET_NULL 0.f
 #define OFFSET_PJ301MPort 4.2
 #define OFFSET_Trimpot 3.15
 #define OFFSET_RoundSmallBlackKnob 4.0

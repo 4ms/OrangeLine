@@ -56,7 +56,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // Value Ranges
 //
-#define SEMITONE       (1.f / 12.f)
 
 #define LOW_MIN_RAW   -10.f
 #define LOW_MAX_RAW    10.f
