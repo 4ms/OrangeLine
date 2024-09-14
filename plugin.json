@@ -107,6 +107,15 @@
         "Random",
         "Polyphonic"
       ]
+    },
+    {
+      "slug": "Buckets",
+      "name": "Buckets",
+      "description": "Splits up polyphonic pitch and gate input into up to 12 polyphic pitch and gate outputs, depending on pitch value, chainable",
+      "tags": [
+        "Utility",
+        "Polyphonic"
+      ]
     }
   ]
 }

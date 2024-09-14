@@ -17,6 +17,7 @@ void init(Plugin *p) {
 	p->addModel(modelResc);
 	p->addModel(modelMorph);
 	p->addModel(modelMorpheus);
+	p->addModel(modelBuckets);
 	// p->addModel(modelTemplate);
 	// p->addModel(modelWidgetTest);
 

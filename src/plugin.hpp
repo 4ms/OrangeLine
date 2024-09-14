@@ -17,6 +17,7 @@ extern Model *modelGator;
 extern Model *modelResc;
 extern Model *modelMorph;
 extern Model *modelMorpheus;
+extern Model *modelBuckets;
 // extern Model *modelTemplate;
 // extern Model *modelWidgetTest;
 
