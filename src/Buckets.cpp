@@ -240,8 +240,6 @@ struct Buckets : Module
 */
 struct SplitWidget : TransparentWidget {
 
-	static constexpr const char* notes = "CdDeEFgGaAbB";
-
 	int  idx = 0;;
 	char str[16]; // Space for 12 Chars (need 4 only but compiler complained)
 
@@ -267,12 +265,23 @@ struct SplitWidget : TransparentWidget {
 	}
 
 	void drawLayer (const DrawArgs &drawArgs, int layer) override {
-
         if (module) {
+			constexpr const char* notes = "CdDeEFgGaAbB";
+
             float cv = module->OL_state[stateIdxParam (SPLIT_PARAM + idx)];
             int note = note (cv);
-            int octave = octave (cv);
-            snprintf (str, sizeof(str) - 1, " %c% 2d", notes[note], octave + 4);
+            int octave = octave (cv) + 4;
+			char octChar = '?';
+			if (octave < 0) {
+				octChar = 'L';
+			}
+			else if (octave > 9) {
+				octChar = 'H';
+			}
+			else {
+				octChar = char('0' + octave);
+			}
+            snprintf (str, sizeof(str) - 1, "%c %c", notes[note], octChar);
         }
         else {
             strncpy (str, "C 0", sizeof(str));
@@ -316,7 +325,7 @@ struct BucketsWidget : ModuleWidget
 		}
         for (int i = 0; i < NUM_SPLITS; i++)
 		{
-            addChild (SplitWidget::createSplitWidget (calculateCoordinates ( 11.493 - 3.65, 10.656 + 4.09 + i * (18.187 - 9.551), OFFSET_NULL), i, module));
+            addChild (SplitWidget::createSplitWidget (calculateCoordinates (11.2, 10.656 + 4.1 + i * (18.187 - 9.551), OFFSET_NULL), i, module));
 		}
 		
 		addInput (createInputCentered<PJ301MPort> (calculateCoordinates (1.129, 112.128, OFFSET_PJ301MPort),  module, VOCT_INPUT));
@@ -325,11 +334,6 @@ struct BucketsWidget : ModuleWidget
         for (int i = 0; i < NUM_SPLITS; i++)
 		{
 			addParam(createParamCentered<Trimpot>(calculateCoordinates (2.184, 9.551 + i * (18.187 - 9.551), OFFSET_Trimpot), module, SPLIT_PARAM + i));
-		}
-
-        for (int i = 0; i < NUM_SPLITS; i++)
-		{
-            addChild (SplitWidget::createSplitWidget (calculateCoordinates (11.493 - 3.65, 10.656 + 4.09 + i * (18.187 - 9.551), OFFSET_NULL), i, module));
 		}
 
         for (int i = 0; i <= NUM_SPLITS; i++)
