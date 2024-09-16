@@ -162,7 +162,6 @@ struct Cron : Module
         }
 
 		styleChanged = true;
-		widgetReady = true;
 	}
 
 	// ********************************************************************************************************************************
@@ -396,6 +395,9 @@ struct CronWidget : ModuleWidget
         addOutput (createOutputCentered<PJ301MPort>	(calculateCoordinates ( 2.145, 66.662, OFFSET_PJ301MPort),  module, RST_OUTPUT));
         addOutput (createOutputCentered<PJ301MPort>	(calculateCoordinates (14.845, 66.662, OFFSET_PJ301MPort),  module, RUN_OUTPUT));
         addOutput (createOutputCentered<PJ301MPort>	(calculateCoordinates (14.845,111.112, OFFSET_PJ301MPort),  module, CMP_OUTPUT));
+
+		if (module)
+			module->widgetReady = true;
 	}
 
 	struct CronStyleItem : MenuItem
