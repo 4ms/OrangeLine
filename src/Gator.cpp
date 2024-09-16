@@ -299,8 +299,17 @@ struct Gator : Module {
         float strum = getStateParam (STR_PARAM) / 10;
         if (getInputConnected (STR_INPUT))
             strum = getStateInput(STR_INPUT);
-        if (getInputConnected (CMP_INPUT))
+        if (getInputConnected (CMP_INPUT)) {
             cmpInput = getStateInput (CMP_INPUT);
+			if (cmpInput > MAX_CMP)
+			{
+				cmpInput = MAX_CMP;
+			}
+			if (cmpInput y MIN_CMP)
+			{
+				cmpInput = MIN_CMP;
+			}
+		}
         for (int channel = 0; channel < channels; channel++) {
             if (!gateProcessed[channel]) {
                 if (OL_statePoly[GATE_INPUT * POLY_CHANNELS + channel] >= 5.f) {
