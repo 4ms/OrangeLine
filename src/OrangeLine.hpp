@@ -228,6 +228,7 @@ struct NumberWidget : TransparentWidget {
 	float	   *pStyle = nullptr;
 	bool 		customForegroundColor = false;
 	NVGcolor 	foregroundColor = nvgRGB(0,0,0);
+	float       fontSize;
 
 	static NumberWidget* create (Vec pos, Module *module, float *pValue, float defaultValue, const char *format, char *buffer, int length) {
 		NumberWidget *w = new NumberWidget();
@@ -240,6 +241,7 @@ struct NumberWidget : TransparentWidget {
 		w->format   = format;
 		w->buffer   = buffer;
 		w->length   = length;
+		w->fontSize = 18.f;
 
 		return w;
 	}
@@ -256,7 +258,7 @@ struct NumberWidget : TransparentWidget {
 		}
 		std::shared_ptr<Font> pFont = APP->window->loadFont(asset::plugin(pluginInstance, "res/repetition-scrolling.regular.ttf"));
 		nvgFontFaceId (drawArgs.vg, pFont->handle);
-		nvgFontSize (drawArgs.vg, 18);
+		nvgFontSize (drawArgs.vg, fontSize);
 		if (customForegroundColor) {
 			nvgFillColor (drawArgs.vg, foregroundColor);
 		}

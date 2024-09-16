@@ -1167,7 +1167,7 @@ struct Mother : Module
 	*/
 	inline void moduleReflectChanges()
 	{
-		if ((customChangeBits & (CHG_ONOFF | CHG_SCL | CHG_CHLD | CHG_ROOT)) && initialized || flagSetHeadScale)
+		if (((customChangeBits & (CHG_ONOFF | CHG_SCL | CHG_CHLD | CHG_ROOT)) && initialized) || flagSetHeadScale)
 		{
 			setHeadScale();
 			flagSetHeadScale = false;
