@@ -305,7 +305,7 @@ struct Gator : Module {
 			{
 				cmpInput = MAX_CMP;
 			}
-			if (cmpInput y MIN_CMP)
+			if (cmpInput < MIN_CMP)
 			{
 				cmpInput = MIN_CMP;
 			}
