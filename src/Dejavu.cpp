@@ -996,8 +996,7 @@ void processOutputChannels() {
 
 		for (int row = 0; row < NUM_ROWS; row++) {
 			if (getStateJson (ONOFF_JSON + row) == 1.) {
-				if (int(getStateJson (ACTIVE_PARAM_JSON + LEN * 4 + row)) == 1 && 
-				    int(getStateJson (ACTIVE_PARAM_JSON + DUR * 4 + row)) == 1)
+				if (!rowActive(row))
 					setRgbLight (REP_LIGHT_RGB + (3 * row), ONOFF_COLOR_ON_INACTIVE);
 				else
 					setRgbLight (REP_LIGHT_RGB + (3 * row), ONOFF_COLOR_ON);
