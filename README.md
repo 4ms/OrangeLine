@@ -364,7 +364,7 @@ OUT BASE CHILD: [polyphonic] Transposed pitch based on the TARGET child SCALE re
 
 CHILD SCALE: [polyphonic] Pitches of the TARGET child SCALE (TARGET root Scale rotated by TARGET CHILD.
 
-## MORPH (deprecaed)
+## MORPH (deprecated)
 
 <p align="center"><img src="res/MorphWork.svg"></p>
 
@@ -526,12 +526,9 @@ CV out [polyphonic]: Value of the current step of the step loop.
 
 Bucket is a polyphonic splitter which takes takes a pair of polyphonic V/Oct and Gate inputs and copies each channels V/Oct and Gate to one of the 13
 V/Octand Gate  output pairs depending on the input channels V/Oct (Pitch) value.
-There 12 rows with a knob, a pitch display and the polyphonic output pair for V/Oct and Gate. The input is processed the foloowing way.
-For each channel CRON start at the top row and checks whether the channels input pitch is lower or equal the pitch setup with the rows knob and displayed in the rows display. 
-If so, the V/Oct ad Gate of this inputput channel channle is added to the rows output channel. In this case CRON continues with processing the next input channel. 
-So there is aways only one output channel an input channel is copied to.
-If not the next row is checked. If non of the 12 setup split points points is larger than the input /Oct, the V/Oct and Gate are added to the bottom output pair beside the inputs.
-This way multiple instances can be chained. 
+There 12 are rows with a knob, a pitch display and the polyphonic output pair for V/Oct and Gate. The input is processed the following way.
+For each channel CRON start at the top row and checks whether the channels input pitch is lower or equal the pitch setup with the rows Split point knob and displayed in the rows display. If so, the V/Oct and Gate of this inputput channle is added to the rows output V/Oct and Gate pair. In this case CRON continues with processing the next input channel. 
+So there is aways only one output channel an input channel is copied to. If not, the next row is checked. If non of the 12 setup split points is larger or equal the input V/Oct, the V/Oct and Gate are added to the bottom output pair beside the inputs. This way multiple instances can be chained. 
 
 ### The Panel
 
