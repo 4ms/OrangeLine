@@ -1,7 +1,7 @@
 # OrangeLine
 OrangeLine VCV Plugin
 
-## Fence
+## FENCE
 
 <p align="center"><img src="res/FenceWork.svg"></p>
 
@@ -22,7 +22,7 @@ Fence will send a TRG OUT whenever cv out is changing.
 
 If TRG IN is connected, Fence will not work continously but more like a S&H when a trigger in is detected.
 
-## Swing
+## SWING
 
 <p align="center"><img src="res/SwingImage.svg"></p>
 
@@ -42,7 +42,7 @@ eCLK (early clock) will output a trg the eraliest time tCLK can appear. Use eCLK
 I recommend to always do a S&H of all values needed for a step when tCLK arrives to avoid note tails.
 PHS and CMP are output to allow for further timing like humanization (a module using this will come!).
 
-## Mother
+## MOTHER
 
 <p align="center"><img src="res/MotherImage.svg"></p>
 
@@ -68,7 +68,7 @@ Example setup:
 Initialize Mother. Setup a mother major scale. Set weights for c,e,g to 100% and the other weights to 0. Leave the child scales weight at 50%. Set SPAN to max and trigger Mother using a clock. Mother will doodle on a C major chord. No sending a D to the CHLD input will make Mother play the notes of a D minor chord.
 
 
-## Phrase
+## PHRASE
 
 <p align="center"><img src="res/PhraseWork.svg"></p>
 
@@ -144,7 +144,7 @@ Since the trowasoft sequencer are not compatible on pattern cv in itsself, there
 
 Have fun
 
-## Dejavu
+## DEJAVU
 
 <p align="center"><img src="res/Dejavu_Final_Screenshot.png"></p>
 
@@ -287,7 +287,7 @@ CV Output: (Upper bottom right) Polyphonic CV output
 
 GATE_Output: (Bottom right) Polyphonic Trigger/Gate output.
 
-## Gator
+## GATOR
 
 <p align="center"><img src="res/GatorWork.svg"></p>
 
@@ -340,7 +340,7 @@ RST input: Reset. clears all ongoing gates, ratchetings and strumming.
 
 Output: [polyphonic] The gate output of Gator
 
-## Resc
+## RESC
 
 <p align="center"><img src="res/RescWork.svg"></p>
 
@@ -364,13 +364,14 @@ OUT BASE CHILD: [polyphonic] Transposed pitch based on the TARGET child SCALE re
 
 CHILD SCALE: [polyphonic] Pitches of the TARGET child SCALE (TARGET root Scale rotated by TARGET CHILD.
 
-## Morph
+## MORPH (deprecaed)
 
 <p align="center"><img src="res/MorphWork.svg"></p>
 
 ### Short Description
 
 Morph is a gate and cv looper with turing machine functionality. It is fully polyphonic except of the CLK input. It features two ring buffers of 65 steps max for gates and cvs with a playhead for each polyphonic channel. The channel playhead handels both of buffers. On each clock tick the playhead is advanced one step. Before advancing the playhead, Morph checks for an replacement events for one or both of its channel loop buffers and processes them. A replace event is triggered if the SRC_FORCE gate for the channel, or randomly depending on the setting of the three knobs in the LOCK section. When a replace event occurs for a loop buffer the loop buffers content of the playhead pointing to is replaced. In case of a SRC_FORCE for the channel, gate and cv values from the SRC inputs are copied to the lopp buffers for that channel independent of other settings. In case of a LOCK orginated replace event Morph determines where the new value(s) should come from depending on the setting of the S<>R knob or input. If the values are determined to come from the SRC inputs, the gate and/or cv values are read from SRC inputs. If the values should come from the internal random generator, the RND_GATE knob or input defines the probability a gate is produced and RND_SCL and RND_OFF knobs and inputs are used to generate a random CV from the internal random generator. After processing replace events, the gate/cv values from the playhead position of the buffers are sent to the outputs and the playhead is advanced one step. Buttons and inputs allow for shifting the playhead(s) forward and backward as well as clearing the loop(s) buffer.
+MORPH is deprecated and MORPHEUS should be used instead.
 
 ### The Panel
 
@@ -426,7 +427,7 @@ GATE output: [polyphonic] Gate output
 
 CV output: [polyphonic] CV output
 
-## Morpheus
+## MORPHEUS
 
 <p align="center"><img src="res/MorpheusWork.svg"></p>
 
@@ -516,3 +517,66 @@ CLK input [monophonic]: Trigger input for Clock
 SRC output [polyphonic]: Values of the current EXT cv if EXT is on, or active memory slot if EXT is off
 GATE output [polyphonic]: Gate out (can be switched to Trigger in right click menu)
 CV out [polyphonic]: Value of the current step of the step loop.
+
+## BUCKETS
+
+<p align="center"><img src="res/BucketsWork.svg"></p>
+
+### Short Description
+
+Bucket is a polyphonic splitter which takes takes a pair of polyphonic V/Oct and Gate inputs and copies each channels V/Oct and Gate to one of the 13
+V/Octand Gate  output pairs depending on the input channels V/Oct (Pitch) value.
+There 12 rows with a knob, a pitch display and the polyphonic output pair for V/Oct and Gate. The input is processed the foloowing way.
+For each channel CRON start at the top row and checks whether the channels input pitch is lower or equal the pitch setup with the rows knob and displayed in the rows display. 
+If so, the V/Oct ad Gate of this inputput channel channle is added to the rows output channel. In this case CRON continues with processing the next input channel. 
+So there is aways only one output channel an input channel is copied to.
+If not the next row is checked. If non of the 12 setup split points points is larger than the input /Oct, the V/Oct and Gate are added to the bottom output pair beside the inputs.
+This way multiple instances can be chained. 
+
+### The Panel
+
+There are 12 rows with:
+
+Split point Knob: Set the split poin fot this row-
+Split point Display: Displayes the pitch value for spit point dialed in wih the knob.
+Controls the probability of MORPHEUS will replace a step. 0% forces change of every step, 100% no change of step.
+V/oct output [polyphonic]: Output for pitch for this row.
+Gate output [polyphonic]: Output for Gate for this row.
+
+In thr Bottom row you find;
+
+V/oct Input [polyphonic]: Output for pitch.
+Gate Input [polyphonic]: Output for Gate.
+V/oct Output [polyphonic]: Output for pitch for pitchs larger than the pitch setup for any row.
+Gate Output [polyphonic]: Output for Gate for pitches larger than the pitch setup for any row.
+
+## CRON
+
+<p align="center"><img src="res/CronWork.svg"></p>
+
+### Short Description
+
+CRON is a utility for handling transport and clock from a MIDI>CV or similar MIDI interface module. Is main purpose is to determine BPM from by tapping the 24ppm MIDI CLK to provide it to a SWING module. It uses START, STOP and CONT signals to determine running status and uses CLK and CLK/N to tab tempo and for synchronisation of local and MIDI clock. It calculates the V/Oct BPM values and outputs it at the BPM output. The RUN output is high while running. CLK/N input is copied to the CLK/N output for conveniance. the RST output puts out a reset trigger.
+Additionally CRON has the ability to support up to 16 different latency corrections for different destinations in BOTH directions. It takes the input CMP value from for example SWING and caclulates the CMP values for GATOR instances to produce latency corrected gates. The calculated values are sent to the polyphonic CMP output. A CHL channle Knob lets you select the channel you want setup the latency with the LATENCY knob below.   
+
+### The Panel
+
+## Upper Section (Clock)
+
+CLK/N and CLK input: MIDI clockinputs
+BPM output: The tapped and calulated BPM V/Oct value
+CLK output: MIDI CLK/N outputs
+
+## Middle Section (Trancport)
+
+START, STOP and CONT input: Transport from MIDI
+RST output: Reset Trigger on START.
+RUN output: Gate output which is high if running
+
+## Bottom Section (Latency)
+
+CHL knob and display: Channel selectetin to edit latencx below
+LATENCY knob: Kob to dial in the latency in milliseconds for the selected chsnnel above.
+LATENCY display: Shows the latency in milliseconds,
+CMP input: Reference CMP value from SWING
+CMP output [polyphonic]: Latency corrected CMP values for each channel
