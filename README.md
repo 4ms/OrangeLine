@@ -448,7 +448,9 @@ The HLD button freezes the channels steps, so no change will be applied to the s
 overwritten when loading from a memory slot. Using the HLD input, you can select which channels to be on HLD individually.
 The buttons RND, <<, >>, CLR affect ALL channels except channels on HLD. The RND and CLR buttons are temporary, so they can used to affect only the current position of the step loops while pressed. If the corresponding polyphonic inputs are used only the gated channels will be affected by the operation. RND forces the current step to be randomized. CLR will initialize the current step to the channels OFS value. <<,>> shift the step loop left and right respectively.
 When a nice loop was created, the polyphonic step loop can be stored to one of the 16 memory slots by selecting the slot with the up and down buttons and pressing of STO. When selecting a memory slot with up and down buttons, the slot display will show the new slots number in red. This indicates that MORPHEUS still is uing the previous active memory slot as a source for its replacement operations. 
+
 When pressing RCL while the slot is displayed red, it will set the displayed slot as the new active slot for step replacement. So if not locked an S<>R < 50% the cannel with morph to the new memory slots stored loop. When pressing RCL while the display is not red, the whole loop of the memory slot is loaded to the step loop immediatelly. This allows for unmorphed pattern switching.
+
 The EXT button switches the source for replacement to the polyphonic SRC input. So you can use MORPHEUS to mutate a sequence coming in
 from another sequencer or midi. The REC button and its polyphonic inputs can be used to force MORPHEUS to replace the current steps value(s) be the external CV value(s), thus recording the external source to the step loop. While EXT is on, you can sill save the current loop to a memmory slot but RCL will have no effect on the current step loop.
 
@@ -457,72 +459,97 @@ from another sequencer or midi. The REC button and its polyphonic inputs can be 
 #### Top Section
 
 LOCK knob: Controls the probability of MORPHEUS will replace a step. 0% forces change of every step, 100% no change of step.
+
 LOCK input: [polyphonic] [LOCK/10, 0..10V] is added to LOCK knobs value for each channel.
 
 S<>R knob: Controls the probability of MORPHEUS will replace from source or randomize. 0% only use source, 100% alwas randomize.
+
 S<>R input: [polyphonic] [S<>R/10, 0..10V] is added to s<>R knobs value for each channel.
 
 #### MEM Section
 
 LEN knob [1-128]: Length of the step loop
+
 LEN input [polyphonic] [LEN/100, 0.01..1.28]: overides the LEN knob per channel. LEN knobs value is used if LEN input for a channel is 0V.
 
 up, down buttons: select memory slot store or recall.
+
 MEM display. Shows selected memory slot. If the active memory slot if a different one the number is displayed in red.
+
 MEM input [monophonic] [slot/10, 0.1..1.6]: activate memory slot by cv. If the right click menu option 'Load on Mem CV Change' is set, the mem slot is not only activated but loaded instantly. 
 
 STO button: Store current loop to selected memory slot. sets active slot to be the selected one.
+
 STO input [monophonic]: trigger STO if > 0.V is given.
 
 RCL button: Make the selected memory slot the active on. Load step loop from memory if selected and active memory slot already match. Channels on HLD will not be loaded.
+
 RCL input [monophonic]: trigger RCL if > 0.V is given.
 
 #### EDIT Section
 
 HLD button: Freezes all channel steps ignoring HLD input.
+
 HLD input [polyphonic]: Freezes individual channels steps if HLD value > 0.
 
 RND button: Randomize all channel steps while RND is pressed, ignoring RND input. Channels on HLD will not be randomized.
+
 RND input [polyphonic]: Randomize individual channels steps while HLD value > 0.
 
 <<,>> buttons: shift all steps of all channels left or right. Channels on HLD will not be shifted
+
 <<,>> inputs [polyphonic]: shift individual channels if cv > 0V.
 
 CLR button: Clears all channel steps (step is set to channels OFS value) while CLR is pressed, ignoring CLR input. Channels on HLD will not be cleared.
+
 CLR input [polyphonic]: Clear individual channels steps while HLD value > 0.
 
 #### EXT and Random Section
 
 EXT button: Use the SRC input as source for non random replacement instead of active memory slot.
+
 EXT input [polyphonic]: external cv input to process as source or record
+
 REC button: Momentary button to force EXT input to be recorded to the step loop.
+
 REC input [polyphonic]: Force record of individula channels if REC cv is > 5.0V
 
 GTP knob: Gate 'probability'. Threshold at which the current steps cv generated a gate
+
 GTP input [polyphonic]. GTP values for individual channels. Input overrides knob if a value is present for that channel.
 
 SCL knob: Scale for randomly generated cv values. Negative bipolar, positive unipolar.
+
 SCL input [polyphonic]. SCL values for individual channels. Input overrides knob if a value is present for that channel.
 
 OFS knob: Offset for randomly generated cv values. Negative bipolar, positive unipolar.
+
 OFS input [polyphonic]. OFS values for individual channels. Input overrides knob if a value is present for that channel.
 
 #### Input/Output Section
 
 RST input [monophonic]: Trigger input for Reset. Sets the head position of all step loops to 0.
+
 CLK input [monophonic]: Trigger input for Clock
 
 SRC output [polyphonic]: Values of the current EXT cv if EXT is on, or active memory slot if EXT is off
+
 GATE output [polyphonic]: Gate out (can be switched to Trigger in right click menu)
+
 CV out [polyphonic]: Value of the current step of the step loop.
 
 ### Right Click Menu
 
 Output Trg instead of Gate:  If set, MORHEUS will output Triggers instead of Gates
+
 Recall on Mem CV Change: If set do a RCL wen MEM input CV changes
+
 Load on Mem CV Change: If set does a load (lie RCL pressed twice) wen MEM input CV changes
+
 Smart HLD:If set, any low HLD channel will be held and edit actions affect only channels with high HLD
+
 MEM is Note: MEM CV uses V/Oct CV to select MEM slots.
+
 Channels: Set number of polyphonic output channels to produce  
 
 ## BUCKETS
@@ -534,24 +561,30 @@ Channels: Set number of polyphonic output channels to produce
 Bucket is a polyphonic splitter which takes takes a pair of polyphonic V/Oct and Gate inputs and copies each channels V/Oct and Gate to one of the 13
 V/Octand Gate  output pairs depending on the input channels V/Oct (Pitch) value.
 There 12 are rows with a knob, a pitch display and the polyphonic output pair for V/Oct and Gate. The input is processed the following way.
-For each channel CRON start at the top row and checks whether the channels input pitch is lower or equal the pitch setup with the rows Split point knob and displayed in the rows display. If so, the V/Oct and Gate of this inputput channle is added to the rows output V/Oct and Gate pair. In this case CRON continues with processing the next input channel. 
-So there is aways only one output channel an input channel is copied to. If not, the next row is checked. If non of the 12 setup split points is larger or equal the input V/Oct, the V/Oct and Gate are added to the bottom output pair beside the inputs. This way multiple instances can be chained. 
+For each channel CRON start at the top row and checks whether the channels input pitch is lower or equal the pitch setup with the rows Split point knob and displayed in the rows display. If so, the V/Oct and Gate of this inputput channle is added to the rows output V/Oct and Gate pair. In this case CRON continues with processing the next input channel. So there is aways only one output channel an input channel is copied to. If not, the next row is checked. If non of the 12 setup split points is larger or equal the input V/Oct, the V/Oct and Gate are added to the bottom output pair beside the inputs. This way multiple instances can be chained. 
 
 ### The Panel
 
 There are 12 rows with:
 
-Split point Knob: Set the split poin fot this row-
+Split point Knob: Set the split poin for this row
+
 Split point Display: Displayes the pitch value for spit point dialed in wih the knob.
+
 Controls the probability of MORPHEUS will replace a step. 0% forces change of every step, 100% no change of step.
+
 V/oct output [polyphonic]: Output for pitch for this row.
+
 Gate output [polyphonic]: Output for Gate for this row.
 
-In thr Bottom row you find;
+In the Bottom row you find:
 
 V/oct Input [polyphonic]: Output for pitch.
+
 Gate Input [polyphonic]: Output for Gate.
+
 V/oct Output [polyphonic]: Output for pitch for pitchs larger than the pitch setup for any row.
+
 Gate Output [polyphonic]: Output for Gate for pitches larger than the pitch setup for any row.
 
 ## CRON
@@ -561,6 +594,7 @@ Gate Output [polyphonic]: Output for Gate for pitches larger than the pitch setu
 ### Short Description
 
 CRON is a utility for handling transport and clock from a MIDI>CV or similar MIDI interface module. Is main purpose is to determine BPM by tapping the 24ppm MIDI CLK to provide it to a SWING module. It uses START, STOP and CONT signals to determine running status and uses CLK and CLK/N to tap tempo and for synchronisation of local and MIDI clock. It calculates currect the V/Oct BPM value and outputs it at the BPM output. The RUN output is high while running. CLK/N input is copied to the CLK/N output for conveniance. The RST output puts out a reset trigger.
+
 Additionally CRON has the ability to support up to 16 different latency corrections for different destinations in BOTH directions. Meaning it can correct for positive and negative latency. It takes the input CMP value from for example SWING and caclulates the CMP values for GATOR instances to produce latency corrected gates. The calculated values are sent to the polyphonic CMP output. A CHL channle Knob lets you select the channel you want setup the latency with the LATENCY knob below.   
 
 ### The Panel
@@ -568,19 +602,27 @@ Additionally CRON has the ability to support up to 16 different latency correcti
 ## Upper Section (Clock)
 
 CLK/N and CLK input: MIDI clockinputs
+
 BPM output: The tapped and calulated BPM V/Oct value
+
 CLK output: MIDI CLK/N outputs
 
 ## Middle Section (Trancport)
 
 START, STOP and CONT input: Transport from MIDI
+
 RST output: Reset Trigger on START.
+
 RUN output: Gate output which is high if running
 
 ## Bottom Section (Latency)
 
 CHL knob and display: Channel selectetin to edit latencx below
+
 LATENCY knob: Kob to dial in the latency in milliseconds for the selected chsnnel above.
+
 LATENCY display: Shows the latency in milliseconds,
+
 CMP input: Reference CMP value from SWING
+
 CMP output [polyphonic]: Latency corrected CMP values for each channel
