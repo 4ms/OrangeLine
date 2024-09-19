@@ -142,8 +142,6 @@ The right click menu offers the usual option including the selection of three di
 
 Since the trowasoft sequencer are not compatible on pattern cv in itsself, there is a trowa pattern offset fix selectable which add a slight offset to the pattern cv provided by the master sequencer.
 
-Have fun
-
 ## DEJAVU
 
 <p align="center"><img src="res/Dejavu_Final_Screenshot.png"></p>
@@ -517,6 +515,15 @@ CLK input [monophonic]: Trigger input for Clock
 SRC output [polyphonic]: Values of the current EXT cv if EXT is on, or active memory slot if EXT is off
 GATE output [polyphonic]: Gate out (can be switched to Trigger in right click menu)
 CV out [polyphonic]: Value of the current step of the step loop.
+
+### Right Click Menu
+
+Output Trg instead of Gate:  If set, MORHEUS will output Triggers instead of Gates
+Recall on Mem CV Change: If set do a RCL wen MEM input CV changes
+Load on Mem CV Change: If set does a load (lie RCL pressed twice) wen MEM input CV changes
+Smart HLD:If set, any low HLD channel will be held and edit actions affect only channels with high HLD
+MEM is Note: MEM CV uses V/Oct CV to select MEM slots.
+Channels: Set number of polyphonic output channels to produce  
 
 ## BUCKETS
 

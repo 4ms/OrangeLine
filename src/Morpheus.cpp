@@ -279,12 +279,19 @@ struct Morpheus : Module
             }
 			else if (channels >= channel) {
 				float hld = OL_statePoly[HLD_INPUT * POLY_CHANNELS + channel] > 5.f ? 10.f : 0.f;
-				if (haveHld) {
-					if (hld == 0.f) {
-						hld = 10.f;
-					}
-					else {
-						hld = 0.f;
+				if (getStateJson(SMART_HOLD_JSON) == 1.0f) {
+					if (haveHld) {
+						if (hld == 0.f) {
+							hld = 10.f;
+						}
+						else {
+							if (hld > 7.5f) {
+								hld = 0.f;
+							}
+							else if (hld > 5.0) {
+								hld = 10.f;
+							}
+						}
 					}
 					// DEBUG ("getChannelHld(%d) returns %lf", channel, hld);
 				}
@@ -485,7 +492,7 @@ struct Morpheus : Module
 		}
 
 		// Handle HLD_ON Button presses
-		if (inChangeParam (HLD_ON_PARAM)) {	//	User clicked on tr/gt button
+		if (inChangeParam (HLD_ON_PARAM)) {	//	User clicked on HLD button
 			setStateJson (HLD_ON_JSON, getStateParam(HLD_ON_PARAM));
 		}
 		else {
