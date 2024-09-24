@@ -201,6 +201,7 @@ struct Morpheus : Module
 		setStateJson(RECALL_ON_MEM_CV_CHANGE_JSON, 1.f);
 		setStateJson(SMART_HOLD_JSON, 0.f);
 		setStateJson(MEM_IS_HALFTONES_JSON, 0.f);
+		setStateJson(RCL_HLD_CHANNELS_JSON, 0.f);
 
 		for (int i = 0; i < POLY_CHANNELS; i++) {
 			isShiftLeft[i] = false;
@@ -611,7 +612,7 @@ struct Morpheus : Module
 		   ) {
 			if (getStateJson(SELECTED_MEM_JSON) == getStateJson(ACTIVE_MEM_JSON)) {
 				for (int channel = 0; channel < polyChannels; channel++) {
-					if (getChannelHld(channel) < 5.f) {
+					if (getChannelHld(channel) < 5.f || getStateJson(RCL_HLD_CHANNELS_JSON) == 1.0f) {
 						loadChannel(channel);
 					}
 				}
@@ -987,6 +988,23 @@ struct MorpheusWidget : ModuleWidget
 		}
 	};
 
+	struct RclHldChannelsItem : MenuItem
+	{
+		Morpheus *module;
+		void onAction(const event::Action &e) override
+		{
+			if (module->OL_state[RCL_HLD_CHANNELS_JSON] == 0.f)
+				module->OL_setOutState(RCL_HLD_CHANNELS_JSON, 1.f);
+			else
+				module->OL_setOutState(RCL_HLD_CHANNELS_JSON, 0.f);
+		}
+		void step() override
+		{
+			if (module)
+				rightText = (module != nullptr && module->OL_state[RCL_HLD_CHANNELS_JSON] == 1.0f) ? "✔" : "";
+		}
+	};
+
 	struct MorpheusStyleItem : MenuItem
 	{
 		Morpheus *module;
@@ -1083,6 +1101,11 @@ struct MorpheusWidget : ModuleWidget
 		memIsHalftonesItem->module = module;
 		memIsHalftonesItem->text = "MEM is Note";
 		menu->addChild(memIsHalftonesItem);
+
+		RclHldChannelsItem *rclHldChannelsItem = new RclHldChannelsItem();
+		rclHldChannelsItem->module = module;
+		rclHldChannelsItem->text = "RCL Channels on HLD";
+		menu->addChild(rclHldChannelsItem);
 
 		spacerLabel = new MenuLabel();
 		menu->addChild(spacerLabel);
