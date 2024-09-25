@@ -161,3 +161,9 @@ enum LightIds {
 	NOTE_LIGHT_12___B,
 	NUM_LIGHTS
 };
+
+#if defined(METAMODULE)
+enum DisplayIds {
+	HEAD_DISPLAY = NUM_LIGHTS,
+};
+#endif

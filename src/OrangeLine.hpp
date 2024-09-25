@@ -270,7 +270,12 @@ struct NumberWidget : TransparentWidget {
 /**
 	Widget to display cvOct values as floats or notes
 */
+#if defined(METAMODULE)
+struct TextWidget : MetaModule::VCVTextDisplay {
+#else
 struct TextWidget : TransparentWidget {
+#endif
+	
 
 	Module     *module = nullptr;
 	const char *text   = nullptr;

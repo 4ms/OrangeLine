@@ -1196,6 +1196,18 @@ struct Mother : Module
 		if (headScrollTimer > 0)
 			headScrollTimer -= 1 + samplesSkipped;
 	}
+
+#if defined(METAMODULE)
+	size_t get_display_text(int led_id, std::span<char> text) override {
+		if (led_id == HEAD_DISPLAY) {
+			size_t chars_to_copy = std::min(text.size(), sizeof(headText));
+			std::copy(headText, headText + chars_to_copy, text.begin());
+			return chars_to_copy;
+
+		}
+		return 0;
+	}
+#endif
 };
 
 // ********************************************************************************************************************************
@@ -1349,6 +1361,11 @@ struct MotherWidget : ModuleWidget
 		text = (module != nullptr ? module->headDisplayText : nullptr);
 		headWidget = TextWidget::create(mm2px(Vec(3.183 - 0.25 - 0.35, 128.5 - 115.271)), module, text, "Major", 12, (module ? &(module->headScrollTimer) : nullptr));
 		headWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+		headWidget->font = "OrangeLine/repetition-scrolling_18.bin";
+		headWidget->color = RGB565{(uint8_t)255, 102, 0};
+		headWidget->firstLightId = HEAD_DISPLAY;
+#endif
 		addChild(headWidget);
 
 		text = (module != nullptr ? module->rootText : nullptr);
