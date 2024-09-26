@@ -1198,15 +1198,36 @@ struct Mother : Module
 	}
 
 #if defined(METAMODULE)
-	size_t get_display_text(int led_id, std::span<char> text) override {
-		if (led_id == HEAD_DISPLAY) {
-			size_t chars_to_copy = std::min(text.size(), sizeof(headText));
-			std::copy(headText, headText + chars_to_copy, text.begin());
-			return chars_to_copy;
 
+	size_t get_display_text(int led_id, std::span<char> text) override {
+		const char* module_text = nullptr;
+		size_t chars_to_copy = 0;
+
+		if (led_id == HEAD_DISPLAY) {
+			module_text = headDisplayText;
+			chars_to_copy = sizeof(headDisplayText);
 		}
-		return 0;
+		else if (led_id == ROOT_DISPLAY) {
+			module_text = rootText;
+			chars_to_copy = sizeof(rootText);
+		}
+		else if (led_id == SCALE_DISPLAY) {
+			// module_text = childText;
+			// chars_to_copy = sizeof(childText);
+		}
+		else if (led_id == CHILD_DISPLAY) {
+			module_text = childText;
+			chars_to_copy = sizeof(childText);
+		}
+		
+		if (chars_to_copy) {
+			chars_to_copy = std::min(text.size(), chars_to_copy);
+			std::copy(module_text, module_text + chars_to_copy, text.begin());
+		}
+
+		return chars_to_copy;
 	}
+
 #endif
 };
 
@@ -1362,8 +1383,6 @@ struct MotherWidget : ModuleWidget
 		headWidget = TextWidget::create(mm2px(Vec(3.183 - 0.25 - 0.35, 128.5 - 115.271)), module, text, "Major", 12, (module ? &(module->headScrollTimer) : nullptr));
 		headWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
 #if defined(METAMODULE)
-		headWidget->font = "OrangeLine/repetition-scrolling_18.bin";
-		headWidget->color = RGB565{(uint8_t)255, 102, 0};
 		headWidget->firstLightId = HEAD_DISPLAY;
 #endif
 		addChild(headWidget);
@@ -1371,17 +1390,25 @@ struct MotherWidget : ModuleWidget
 		text = (module != nullptr ? module->rootText : nullptr);
 		rootWidget = TextWidget::create(mm2px(Vec(24.996 - 0.25, 128.5 - 52.406)), module, text, "C", 2, nullptr);
 		rootWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+		rootWidget->firstLightId = ROOT_DISPLAY;
+#endif
 		addChild(rootWidget);
 
 		float *pvalue = (module != nullptr ? &(module->effectiveScaleDisplay) : nullptr);
 		scaleWidget = NumberWidget::create(mm2px(Vec(12.931 - 0.25, 128.5 - 86.537)), module, pvalue, 1.f, "%2.0f", scaleBuffer, 2);
 		scaleWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
-
+#if defined(METAMODULE)
+		// scaleWidget->firstLightId = SCALE_DISPLAY;
+#endif
 		addChild(scaleWidget);
 
 		text = (module != nullptr ? module->childText : nullptr);
 		childWidget = TextWidget::create(mm2px(Vec(26.742 - 0.25, 128.5 - 86.537)), module, text, "C", 2, nullptr);
 		childWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+		childWidget->firstLightId = CHILD_DISPLAY;
+#endif
 		addChild(childWidget);
 
 		if (module)

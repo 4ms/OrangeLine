@@ -307,6 +307,10 @@ struct TextWidget : TransparentWidget {
 		Constructor
 	*/
 	TextWidget () {
+#if defined(METAMODULE)
+		font = "OrangeLine/repetition-scrolling_12.bin";
+		color = RGB565{(uint8_t)255, 102, 0};
+#endif
 	}
 
 	// void unsetForegroundColor() {

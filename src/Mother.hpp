@@ -165,5 +165,8 @@ enum LightIds {
 #if defined(METAMODULE)
 enum DisplayIds {
 	HEAD_DISPLAY = NUM_LIGHTS,
+	ROOT_DISPLAY,
+	SCALE_DISPLAY,
+	CHILD_DISPLAY
 };
 #endif
