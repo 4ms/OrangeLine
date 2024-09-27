@@ -213,7 +213,11 @@ typedef struct OrangeLineRandom {
 /**
 	Widget to display cvOct values as floats or notes
 */
+#if defined(METAMODULE)
+struct NumberWidget : MetaModule::VCVTextDisplay {
+#else
 struct NumberWidget : TransparentWidget {
+#endif
 
 	Module     *module = nullptr;
 	float      *pValue = nullptr;
@@ -236,6 +240,12 @@ struct NumberWidget : TransparentWidget {
 		w->format   = format;
 		w->buffer   = buffer;
 		w->length   = length;
+
+#if defined(METAMODULE)
+		w->box.pos.y  -= mm2px (6);
+		w->font = "Default_12";
+		w->color = RGB565{(uint8_t)255, 102, 0};
+#endif
 
 		return w;
 	}
@@ -308,7 +318,8 @@ struct TextWidget : TransparentWidget {
 	*/
 	TextWidget () {
 #if defined(METAMODULE)
-		font = "OrangeLine/repetition-scrolling_12.bin";
+		// font = "OrangeLine/Sudo_14.bin";
+		font = "Default_12";
 		color = RGB565{(uint8_t)255, 102, 0};
 #endif
 	}

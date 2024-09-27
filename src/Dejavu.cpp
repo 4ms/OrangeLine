@@ -25,6 +25,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "Dejavu.hpp"
 
+#if defined(METAMODULE)
+struct LeftWidget; //forward declare
+#endif
+
 struct Dejavu : Module {
 
 	#include "OrangeLineCommon.hpp"
@@ -1020,6 +1024,11 @@ void processOutputChannels() {
 		if (getStateJson (SH_JSON) == SH_CONT)
 			setRgbLight (SH_LIGHT_RGB, SH_COLOR_CONT);
 	}
+
+#if defined(METAMODULE)
+	LeftWidget *left_widget = nullptr;
+	size_t get_display_text(int led_id, std::span<char> text) override;
+#endif
 };
 
 // ********************************************************************************************************************************
@@ -1034,7 +1043,11 @@ void processOutputChannels() {
 /**
 	Widget to display cvOct values as floats or notes
 */
+#if defined(METAMODULE)
+struct LeftWidget : MetaModule::VCVTextDisplay {
+#else
 struct LeftWidget : TransparentWidget {
+#endif
 
 	Dejavu     *module = nullptr;
 	int       paramDisplayCycles = 0;
@@ -1046,6 +1059,10 @@ struct LeftWidget : TransparentWidget {
 		w->box.size = mm2px (Vec (32.512, 10.668));
 		// w->box.pos.y += w->box.size.y;
 		w->module   = module;
+#if defined(METAMODULE)
+		w->font = "Default_12";
+		w->color = RGB565{(uint8_t)255, 102, 0};
+#endif
 
 		return w;
 	}
@@ -1056,7 +1073,7 @@ struct LeftWidget : TransparentWidget {
 	LeftWidget () {
 	}
 
-	bool redParam (int param) {
+	static bool redParam (Dejavu *module, int param) {
 		float moduleState = module->getStateJson (MODULE_STATE_JSON);
 		if (moduleState == STATE_EDIT_RANGES) {
 			if ((param >= LEN_PARAM && param <= LEN_PARAM_END) ||
@@ -1081,6 +1098,13 @@ struct LeftWidget : TransparentWidget {
 		}
 		if (module) {
 			std::shared_ptr<Font> pFont = APP->window->loadFont(asset::plugin(pluginInstance, "res/repetition-scrolling.regular.ttf"));
+#if defined(METAMODULE)
+			draw_text(module, paramDisplayCycles);
+		}
+	}
+
+	static std::pair<std::string_view, std::string_view> draw_text(Dejavu* module, int &paramDisplayCycles) {
+#endif
 			float style = module->getStateJson(STYLE_JSON);
 			char headBuffer[18];
 			char valueBuffer[18];
@@ -1100,7 +1124,7 @@ struct LeftWidget : TransparentWidget {
 				const char *label = pq->getLabel().c_str();
 				const char *unit  = pq->unit.data();
 
-				if (!redParam (param)) {
+				if (!redParam (module, param)) {
 					if (*unit != '\0')
 						snprintf (headBuffer, 17, "%s[%s]:", label, unit);
 					else
@@ -1154,6 +1178,10 @@ struct LeftWidget : TransparentWidget {
 					module->greetingCycles = 0;
 				}
 			}
+#if defined(METAMODULE)
+			return {headBuffer, valueBuffer};
+		}
+#else
 			nvgFontFaceId (drawArgs.vg, pFont->handle);
 			nvgFontSize (drawArgs.vg, 20);
 			nvgFillColor (drawArgs.vg, redParam (param) ? RED : (style == STYLE_ORANGE ? ORANGE : WHITE));
@@ -1164,7 +1192,7 @@ struct LeftWidget : TransparentWidget {
 			//nvgText (drawArgs.vg, mm2px(2.447) - box.pos.x + mm2px(0.5), mm2px(41.283) - box.pos.y + mm2px(4.812), valueBuffer, nullptr);
 		}
 		Widget::drawLayer(drawArgs, 1);
-	}
+#endif
 };
 
 struct RigthWidget : TransparentWidget {
@@ -1410,6 +1438,21 @@ struct RigthWidget : TransparentWidget {
 		Widget::drawLayer(drawArgs, 1);
 	}
 };
+
+#if defined(METAMODULE)
+size_t Dejavu::get_display_text(int led_id, std::span<char> text) {
+	static int paramDisplayCycles = 0;
+	if (led_id == LEFT_DISPLAY) {
+		auto [headBuf, valBuf] = LeftWidget::draw_text(this, paramDisplayCycles);
+		// Ignore headBuf, font is too small
+		auto chars_to_copy = std::min(text.size(), headBuf.size());
+		std::copy(valBuf.data(), valBuf.data() + chars_to_copy, text.begin());
+		return chars_to_copy;
+	}
+	return 0;
+}
+#endif
+
 /**
 	Main Module Widget
 */
@@ -1491,7 +1534,13 @@ struct DejavuWidget : ModuleWidget {
 		light->bgColor = nvgRGBA(0, 0, 0, 255);
 	 	addChild (light);
 
+#if defined(METAMODULE)
+ 		auto left_widget = LeftWidget::create(module);
+		left_widget->firstLightId = LEFT_DISPLAY;
+		addChild(left_widget);
+#else
  		addChild (LeftWidget::create (module));
+#endif
  		addChild (RigthWidget::create (module));
 
 #ifdef USE_DEBUG_OUTPUT

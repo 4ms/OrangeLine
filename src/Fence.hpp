@@ -220,3 +220,11 @@ enum LightIds {
 
 	NUM_LIGHTS
 };
+
+#if defined(METAMODULE)
+enum DisplayIds {
+	HIGH_DISPLAY = NUM_LIGHTS,
+	LOW_DISPLAY,
+	STEP_DISPLAY,
+};
+#endif

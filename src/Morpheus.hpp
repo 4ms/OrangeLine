@@ -126,3 +126,10 @@ enum LightIds {
 
 	NUM_LIGHTS
 };
+
+#if defined(METAMODULE)
+enum DisplayIds {
+	MEM_DISPLAY = NUM_LIGHTS,
+};
+#endif
+

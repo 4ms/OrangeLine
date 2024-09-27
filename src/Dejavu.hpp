@@ -196,3 +196,10 @@ enum LightIds {
 
 	NUM_LIGHTS
 };
+
+#if defined(METAMODULE)
+enum DisplayIds {
+	LEFT_DISPLAY = NUM_LIGHTS,
+	//RIGHT_DISPLAY
+};
+#endif

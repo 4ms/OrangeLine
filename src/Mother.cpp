@@ -1212,8 +1212,8 @@ struct Mother : Module
 			chars_to_copy = sizeof(rootText);
 		}
 		else if (led_id == SCALE_DISPLAY) {
-			// module_text = childText;
-			// chars_to_copy = sizeof(childText);
+			int chars_written = snprintf(text.data(), text.size(), "%2.0f", effectiveScaleDisplay);
+			return chars_written < 0 ? 0: chars_written;
 		}
 		else if (led_id == CHILD_DISPLAY) {
 			module_text = childText;
@@ -1399,7 +1399,7 @@ struct MotherWidget : ModuleWidget
 		scaleWidget = NumberWidget::create(mm2px(Vec(12.931 - 0.25, 128.5 - 86.537)), module, pvalue, 1.f, "%2.0f", scaleBuffer, 2);
 		scaleWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
 #if defined(METAMODULE)
-		// scaleWidget->firstLightId = SCALE_DISPLAY;
+		scaleWidget->firstLightId = SCALE_DISPLAY;
 #endif
 		addChild(scaleWidget);
 
@@ -1938,6 +1938,7 @@ struct MotherWidget : ModuleWidget
 			menu->addChild(spacerLabel);
 		}
 	}
+
 };
 
 Model *modelMother = createModel<Mother, MotherWidget>("Mother");

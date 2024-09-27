@@ -820,6 +820,11 @@ struct Fence : Module {
 
 		setStateLight (GATE_LIGHT, getStateJson (GATE_JSON) * 255.f);
 	}
+
+#if defined(METAMODULE)
+	size_t get_display_text(int led_id, std::span<char> text) override;
+#endif
+
 };
 
 // ********************************************************************************************************************************
@@ -830,7 +835,11 @@ struct Fence : Module {
 /**
 	Widget to display cvOct values as floats or notes
 */
+#if defined(METAMODULE)
+struct VOctWidget : MetaModule::VCVTextDisplay {
+#else
 struct VOctWidget : TransparentWidget {
+#endif
 
 	static constexpr const char*  notes = "CCDDEFFGGAAB";
 	static constexpr const char* sharps = " # #  # # # ";
@@ -915,6 +924,42 @@ struct VOctWidget : TransparentWidget {
 	}
 };
 
+#ifdef METAMODULE
+
+size_t Fence::get_display_text(int led_id, std::span<char> text) {
+	float val{};
+	float mode{};
+	int type{};
+
+	if (led_id == HIGH_DISPLAY) {
+		val = effectiveHigh;	
+		mode = getStateJson(MODE_JSON);
+		type = TYPE_VOCT;
+	}
+	else if (led_id == LOW_DISPLAY) {
+		val = effectiveLow;	
+		mode = getStateJson(MODE_JSON);
+		type = TYPE_VOCT;
+	}
+	else if (led_id == STEP_DISPLAY) {
+		val = effectiveStep;	
+		mode = getStateJson(MODE_JSON);
+		type = TYPE_STEP;
+	}
+	else {
+		return 0;
+	}
+
+	char str[sizeof(VOctWidget::str)];
+	VOctWidget::cv2Str(str, val, mode, type);
+	auto chars_to_copy = std::min(text.size(), sizeof(str));
+	std::copy(str, str + chars_to_copy, text.begin());
+
+	return chars_to_copy;
+}
+
+#endif
+
 /**
 	Main Module Widget
 */
@@ -933,6 +978,11 @@ struct FenceWidget : ModuleWidget {
 		w->type = type;
 		w->module = module;
 
+#if defined(METAMODULE)
+		w->box.pos.y -= mm2px(6);
+		w->font = "Default_12";
+		w->color = RGB565{(uint8_t)255, 102, 0};
+#endif
 		return w;
 	}
 
@@ -974,9 +1024,23 @@ struct FenceWidget : ModuleWidget {
 		float defaultHigh = (mode == MODE_QTZ ? DEFAULT_HIGH_QTZ : (mode == MODE_SHPR ?   DEFAULT_HIGH_SHPR : DEFAULT_HIGH_RAW));
 		float defaultStep = (mode == MODE_QTZ ? DEFAULT_STEP_QTZ : (mode == MODE_SHPR ?   DEFAULT_STEP_SHPR : DEFAULT_STEP_RAW));
 
+#if defined(METAMODULE)
+		auto high_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 113.252 - 0.25 )), pHighValue, defaultHigh, pMode, TYPE_VOCT, module);
+		high_disp->firstLightId = HIGH_DISPLAY;
+		addChild(high_disp);
+
+		auto low_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 106.267 - 0.25 )), pLowValue,  defaultLow,  pMode, TYPE_VOCT, module);
+		low_disp->firstLightId = LOW_DISPLAY;
+		addChild(low_disp);
+
+		auto step_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 -  71.267 + 0.25 )), pStepValue, defaultStep, pMode, TYPE_STEP, module);
+		step_disp->firstLightId = STEP_DISPLAY;
+		addChild(step_disp);
+#else
 		addChild (FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 113.252 - 0.25 )), pHighValue, defaultHigh, pMode, TYPE_VOCT, module));
 		addChild (FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 106.267 - 0.25 )), pLowValue,  defaultLow,  pMode, TYPE_VOCT, module));
 		addChild (FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 -  71.267 + 0.25 )), pStepValue, defaultStep, pMode, TYPE_STEP, module));
+#endif
 
 		addParam (createParamCentered<VCVLatch>		(mm2px (Vec (12.858 + 2.38, 128.5 - 88.900 - 2.38)), module, LINK_PARAM));
  		addChild (createLightCentered<LargeLight<RedGreenBlueLight>>	(mm2px (Vec (12.858 + 2.38, 128.5 - 88.900 - 2.38)), module, LINK_LIGHT_RGB));

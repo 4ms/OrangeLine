@@ -258,6 +258,23 @@ struct Swing : Module {
 	*/
 	inline void moduleReflectChanges () {
 	}
+
+#if defined(METAMODULE)
+
+	size_t get_display_text(int led_id, std::span<char> text) override {
+		if (led_id == DIV_DISPLAY) {
+			int chars_written = snprintf(text.data(), text.size(), "%2.0f", getStateParam(DIV_PARAM));
+			return chars_written < 0 ? 0: chars_written;
+		}
+		else if (led_id == LEN_DISPLAY) {
+			int chars_written = snprintf(text.data(), text.size(), "%2.0f", getStateParam(LEN_PARAM));
+			return chars_written < 0 ? 0: chars_written;
+		}
+		return 0;
+	}
+
+#endif
+
 };
 
 // ********************************************************************************************************************************
@@ -311,6 +328,9 @@ struct SwingWidget : ModuleWidget {
 		pValue  = (module != nullptr ? &(module->getStateParam (DIV_PARAM)) : nullptr);
 		numberWidget = NumberWidget::create (mm2px (Vec(3.65, 128.5 - 110.35)), module, pValue, 0.f, "%2.0f", divBuffer, 2);
 		numberWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+		numberWidget->firstLightId = DIV_DISPLAY;
+#endif
 		addChild (numberWidget);
 
 		knob = createParamCentered<RoundSmallBlackKnob>		(mm2px (Vec (34.576 + 4,    128.5 - 99.019 - 4)),    module, LEN_PARAM);
@@ -320,6 +340,9 @@ struct SwingWidget : ModuleWidget {
 		pValue  = (module != nullptr ? &(module->getStateParam (LEN_PARAM)) : nullptr);
 		numberWidget = NumberWidget::create (mm2px (Vec(35.2, 128.5 - 110.35)), module, pValue, 0.f, "%2.0f", lenBuffer, 2);
 		numberWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+		numberWidget->firstLightId = LEN_DISPLAY;
+#endif
 		addChild (numberWidget);
 
 		addParam (createParamCentered<RoundLargeBlackKnob>		(mm2px (Vec (16.51 + 6.35,    128.5 - 102.553 - 6.35)),    module, AMT_PARAM));

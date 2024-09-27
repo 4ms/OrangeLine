@@ -746,6 +746,19 @@ struct Morpheus : Module
 		setStateLight (HLD_ON_LIGHT, getStateJson (HLD_ON_JSON) * 255.f);
 		setStateLight (EXT_ON_LIGHT, getStateJson (EXT_ON_JSON) * 255.f);
 	}
+
+#if defined(METAMODULE)
+
+	size_t get_display_text(int led_id, std::span<char> text) override {
+		if (led_id == MEM_DISPLAY) {
+			int chars_written = snprintf(text.data(), text.size(), "%2.0f", selectedMem);
+			return chars_written < 0 ? 0: chars_written;
+		}
+		return 0;
+	}
+
+#endif
+
 };
 
 // ********************************************************************************************************************************
@@ -832,11 +845,17 @@ struct MorpheusWidget : ModuleWidget
 		if (module) {
 			module->memWidget = NumberWidget::create(mm2px(Vec(22.3 - 0.25, 40.2f)), module, pvalue, 1.f, "%2.0f", memBuffer, 2);
 			module->memWidget->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+			module->memWidget->firstLightId = MEM_DISPLAY;
+#endif
 			addChild(module->memWidget);
 		}
 		else {
 			NumberWidget *w = NumberWidget::create(mm2px(Vec(22.3 - 0.25, 40.2f)), module, pvalue, 1.f, "%2.0f", memBuffer, 2);
 			w->pStyle = (module == nullptr ? nullptr : &(module->OL_state[STYLE_JSON]));
+#if defined(METAMODULE)
+			w->firstLightId = MEM_DISPLAY;
+#endif
 			addChild(w);
 		}
 		if (module)

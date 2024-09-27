@@ -103,3 +103,10 @@ enum OutputIds {
 enum LightIds {
 	NUM_LIGHTS
 };
+
+#if defined(METAMODULE)
+enum DisplayIds {
+	DIV_DISPLAY = NUM_LIGHTS,
+	LEN_DISPLAY,
+};
+#endif
