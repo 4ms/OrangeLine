@@ -242,7 +242,8 @@ struct NumberWidget : TransparentWidget {
 		w->length   = length;
 
 #if defined(METAMODULE)
-		w->box.pos.y  -= mm2px (6);
+		w->box.pos.y  -= mm2px(7);
+		w->box.size.y = mm2px(8);
 		w->font = "Default_12";
 		w->color = RGB565{(uint8_t)255, 102, 0};
 #endif
@@ -309,6 +310,13 @@ struct TextWidget : TransparentWidget {
 		w->defaultText  = defaultText;
 		w->length   = length;
 		w->pTimer   = pTimer;
+#if defined(METAMODULE)
+		w->box.pos.x -= mm2px(1);
+		w->box.pos.y -= mm2px(1);
+		w->box.size.y += mm2px(2);
+		w->font = "Default_12";
+		w->color = RGB565{(uint8_t)255, 102, 0};
+#endif
 
 		return w;
 	}
@@ -317,11 +325,6 @@ struct TextWidget : TransparentWidget {
 		Constructor
 	*/
 	TextWidget () {
-#if defined(METAMODULE)
-		// font = "OrangeLine/Sudo_14.bin";
-		font = "Default_12";
-		color = RGB565{(uint8_t)255, 102, 0};
-#endif
 	}
 
 	// void unsetForegroundColor() {

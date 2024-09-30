@@ -979,7 +979,8 @@ struct FenceWidget : ModuleWidget {
 		w->module = module;
 
 #if defined(METAMODULE)
-		w->box.pos.y -= mm2px(6);
+		w->box.pos.y -= mm2px(7);
+		w->box.size.y = mm2px(7);
 		w->font = "Default_12";
 		w->color = RGB565{(uint8_t)255, 102, 0};
 #endif
@@ -1025,15 +1026,15 @@ struct FenceWidget : ModuleWidget {
 		float defaultStep = (mode == MODE_QTZ ? DEFAULT_STEP_QTZ : (mode == MODE_SHPR ?   DEFAULT_STEP_SHPR : DEFAULT_STEP_RAW));
 
 #if defined(METAMODULE)
-		auto high_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 113.252 - 0.25 )), pHighValue, defaultHigh, pMode, TYPE_VOCT, module);
+		auto high_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 113.252 - 1 )), pHighValue, defaultHigh, pMode, TYPE_VOCT, module);
 		high_disp->firstLightId = HIGH_DISPLAY;
 		addChild(high_disp);
 
-		auto low_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 106.267 - 0.25 )), pLowValue,  defaultLow,  pMode, TYPE_VOCT, module);
+		auto low_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 - 106.267 )), pLowValue,  defaultLow,  pMode, TYPE_VOCT, module);
 		low_disp->firstLightId = LOW_DISPLAY;
 		addChild(low_disp);
 
-		auto step_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 -  71.267 + 0.25 )), pStepValue, defaultStep, pMode, TYPE_STEP, module);
+		auto step_disp = FenceWidget::createVOctWidget (mm2px (Vec(5.09 - 2, 128.5 -  71.267 - 1 )), pStepValue, defaultStep, pMode, TYPE_STEP, module);
 		step_disp->firstLightId = STEP_DISPLAY;
 		addChild(step_disp);
 #else
