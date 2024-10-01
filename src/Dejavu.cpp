@@ -1098,93 +1098,13 @@ struct LeftWidget : TransparentWidget {
 		}
 		if (module) {
 			std::shared_ptr<Font> pFont = APP->window->loadFont(asset::plugin(pluginInstance, "res/repetition-scrolling.regular.ttf"));
-#if defined(METAMODULE)
-			draw_text(module, paramDisplayCycles);
-		}
-	}
-
-	static std::pair<std::string_view, std::string_view> draw_text(Dejavu* module, int &paramDisplayCycles) {
-#endif
 			float style = module->getStateJson(STYLE_JSON);
 			char headBuffer[18];
 			char valueBuffer[18];
-			headBuffer[17] = '\0';
-			valueBuffer[17] = '\0';
-			if (module->paramChanged) {
-				paramDisplayCycles = PARAM_DISPLAY_CYCLES;
-				module->paramChanged = false;
-			}
-			float moduleState = module->getStateJson (MODULE_STATE_JSON);
-			int param = module->lastParamChanged;
-			if (paramDisplayCycles == 0)
-				module->lastParamChanged = -1;
-			if (paramDisplayCycles > 0) {
-				module->greetingCycles = 0;
-				ParamQuantity *pq = module->paramQuantities[param];
-				const char *label = pq->getLabel().c_str();
-				const char *unit  = pq->unit.data();
-
-				if (!redParam (module, param)) {
-					if (*unit != '\0')
-						snprintf (headBuffer, 17, "%s[%s]:", label, unit);
-					else
-						snprintf (headBuffer, 17, "%s:", label);
-				}
-				else {
-					if (param == HEAT_PARAM)
-						snprintf (headBuffer, 17, "Alpha[%s]:", "%");
-					else {
-						if (moduleState == STATE_EDIT_RANGES)
-							snprintf (headBuffer, 17, "Max %s:", label);
-						else
-							snprintf (headBuffer, 17, "Ofs %s:", label);
-					}
-				}
-
-				float value = module->getStateParam (param);
-				if (param == SEED_PARAM)
-					sprintf (valueBuffer, "%08lX", (unsigned long)(module->getStateParam (param)));
-				else {
-					if (value == float(int(value)))
-						snprintf (valueBuffer, 17, "%8.0lf", module->getStateParam (param));
-					else
-						snprintf (valueBuffer, 17, "%8.3lf", module->getStateParam (param));
-				}
-				paramDisplayCycles --;
-			}
-			else {
-				if (moduleState == STATE_ACTIVE) {
-					if (module->greetingCycles > 0) {
-						strcpy(headBuffer, GREETING_HEAD);
-						strcpy(valueBuffer, GREETING_VALUE);
-						module->greetingCycles--;
-					}
-					else {
-						if (module->p_srcRandomGenerator != nullptr) {
-							strncpy (headBuffer, module->displayHeading, 17);
-							sprintf (valueBuffer, "%08lX", module->p_srcRandomGenerator->latestSeed);
-						}
-						else {
-							strcpy(valueBuffer, "null");
-						}
-					}
-				}
-				else {
-					snprintf (headBuffer,  17, "Edit:");
-					if (moduleState == STATE_EDIT_RANGES)
-						snprintf (valueBuffer, 17, " RANGES ");
-					if (moduleState == STATE_EDIT_OFFSETS)
-						snprintf (valueBuffer, 17, " OFFSETS");
-					module->greetingCycles = 0;
-				}
-			}
-#if defined(METAMODULE)
-			return {headBuffer, valueBuffer};
-		}
-#else
+			draw_text(module, paramDisplayCycles, headBuffer, valueBuffer);
 			nvgFontFaceId (drawArgs.vg, pFont->handle);
 			nvgFontSize (drawArgs.vg, 20);
-			nvgFillColor (drawArgs.vg, redParam (param) ? RED : (style == STYLE_ORANGE ? ORANGE : WHITE));
+			nvgFillColor (drawArgs.vg, redParam (module, module->lastParamChanged) ? RED : (style == STYLE_ORANGE ? ORANGE : WHITE));
 			nvgText (drawArgs.vg, mm2px(2.447) - box.pos.x + mm2px(0.5), mm2px(41.283) - box.pos.y + mm2px(4.812), valueBuffer, nullptr);
 
 			nvgFontSize (drawArgs.vg, 10);
@@ -1192,7 +1112,80 @@ struct LeftWidget : TransparentWidget {
 			//nvgText (drawArgs.vg, mm2px(2.447) - box.pos.x + mm2px(0.5), mm2px(41.283) - box.pos.y + mm2px(4.812), valueBuffer, nullptr);
 		}
 		Widget::drawLayer(drawArgs, 1);
-#endif
+	}
+
+	static void draw_text(Dejavu* module, int &paramDisplayCycles, char *headBuffer, char *valueBuffer) {
+		headBuffer[17] = '\0';
+		valueBuffer[17] = '\0';
+		if (module->paramChanged) {
+			paramDisplayCycles = PARAM_DISPLAY_CYCLES;
+			module->paramChanged = false;
+		}
+		float moduleState = module->getStateJson (MODULE_STATE_JSON);
+		int param = module->lastParamChanged;
+		if (paramDisplayCycles == 0)
+			module->lastParamChanged = -1;
+		if (paramDisplayCycles > 0) {
+			module->greetingCycles = 0;
+			ParamQuantity *pq = module->paramQuantities[param];
+			const char *label = pq->getLabel().c_str();
+			const char *unit  = pq->unit.data();
+
+			if (!redParam (module, param)) {
+				if (*unit != '\0')
+					snprintf (headBuffer, 17, "%s[%s]:", label, unit);
+				else
+					snprintf (headBuffer, 17, "%s:", label);
+			}
+			else {
+				if (param == HEAT_PARAM)
+					snprintf (headBuffer, 17, "Alpha[%s]:", "%");
+				else {
+					if (moduleState == STATE_EDIT_RANGES)
+						snprintf (headBuffer, 17, "Max %s:", label);
+					else
+						snprintf (headBuffer, 17, "Ofs %s:", label);
+				}
+			}
+
+			float value = module->getStateParam (param);
+			if (param == SEED_PARAM)
+				sprintf (valueBuffer, "%08lX", (unsigned long)(module->getStateParam (param)));
+			else {
+				if (value == float(int(value)))
+					snprintf (valueBuffer, 17, "%8.0lf", module->getStateParam (param));
+				else
+					snprintf (valueBuffer, 17, "%8.3lf", module->getStateParam (param));
+			}
+			paramDisplayCycles --;
+		}
+		else {
+			if (moduleState == STATE_ACTIVE) {
+				if (module->greetingCycles > 0) {
+					strcpy(headBuffer, GREETING_HEAD);
+					strcpy(valueBuffer, GREETING_VALUE);
+					module->greetingCycles--;
+				}
+				else {
+					if (module->p_srcRandomGenerator != nullptr) {
+						strncpy (headBuffer, module->displayHeading, 17);
+						sprintf (valueBuffer, "%08lX", module->p_srcRandomGenerator->latestSeed);
+					}
+					else {
+						strcpy(valueBuffer, "null");
+					}
+				}
+			}
+			else {
+				snprintf (headBuffer,  17, "Edit:");
+				if (moduleState == STATE_EDIT_RANGES)
+					snprintf (valueBuffer, 17, " RANGES ");
+				if (moduleState == STATE_EDIT_OFFSETS)
+					snprintf (valueBuffer, 17, " OFFSETS");
+				module->greetingCycles = 0;
+			}
+		}
+	}
 };
 
 struct RigthWidget : TransparentWidget {
@@ -1443,7 +1436,9 @@ struct RigthWidget : TransparentWidget {
 size_t Dejavu::get_display_text(int led_id, std::span<char> text) {
 	static int paramDisplayCycles = 0;
 	if (led_id == LEFT_DISPLAY) {
-		auto [headBuf, valBuf] = LeftWidget::draw_text(this, paramDisplayCycles);
+		std::array<char, 18> headBuf;
+		std::array<char, 18> valBuf;
+		LeftWidget::draw_text(this, paramDisplayCycles, headBuf.data(), valBuf.data());
 		// Ignore headBuf, font is too small
 		auto chars_to_copy = std::min(text.size(), headBuf.size());
 		std::copy(valBuf.data(), valBuf.data() + chars_to_copy, text.begin());
