@@ -387,7 +387,13 @@ float getFromParamOrPolyInput(int param, int input, int channel, float inputScal
 */
 void process (const ProcessArgs &args) override {
 	bool skip = moduleSkipProcess();
-	idleSkipCounter = (idleSkipCounter + 1) % IDLESKIP;
+	int idleSkip = IDLESKIP;
+	if (idleSkip > 0) {
+		idleSkipCounter = (idleSkipCounter + 1) % IDLESKIP;
+	}
+	else {
+		idleSkipCounter = 0;
+	}
 	if (skip) {
 		samplesSkipped ++;
 		processActiveOutputTriggers ();

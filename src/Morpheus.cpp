@@ -41,6 +41,7 @@ struct Morpheus : Module
 	bool widgetReady = false;
 	float selectedMem = 1.f;
 	NumberWidget *memWidget = nullptr;
+	bool haveEditHld = false;
 
 #include "MorpheusJsonLabels.hpp"
 
@@ -197,6 +198,11 @@ struct Morpheus : Module
 		setStateJson(HLD_ON_JSON, 0.f);
 		setStateJson(GATE_IS_TRG_JSON, 0.f);
 		setStateJson(LOAD_ON_MEM_CV_CHANGE_JSON, 0.f);
+		setStateJson(RECALL_ON_MEM_CV_CHANGE_JSON, 1.f);
+		setStateJson(SMART_HOLD_JSON, 0.f);
+		setStateJson(MEM_IS_HALFTONES_JSON, 0.f);
+		setStateJson(LOAD_HLD_CHANNELS_JSON, 0.f);
+
 		for (int i = 0; i < POLY_CHANNELS; i++) {
 			isShiftLeft[i] = false;
 			isShiftRight[i] = false;
@@ -262,21 +268,47 @@ struct Morpheus : Module
 		return loopLen;
 	}
 
-	inline float getChannelHld(int channel)
+	inline bool checkForEditHld() {
+		int channels = 0;
+		if (getInputConnected(HLD_INPUT) && getStateJson(SMART_HOLD_JSON) == 1.0f) {
+			channels = inputs[HLD_INPUT].getChannels();
+			if (channels > 1) {
+				for (int channel = 0; channel < channels; channel ++) {
+					if (OL_statePoly[HLD_INPUT * POLY_CHANNELS + channel] > 7.5) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	inline bool getChannelHld(int channel)
 	{
 		if (getStateJson(HLD_ON_JSON) > 0.f) {
-			return 10.f;
+			return true;
 		}
+		float hld = 0.f;
 		if (getInputConnected(HLD_INPUT)) {
 			int channels = inputs[HLD_INPUT].getChannels();
             if (channels == 1) {
-				return OL_statePoly[HLD_INPUT * POLY_CHANNELS] > 5.f ? 10.f : 0.f;
+				hld = OL_statePoly[HLD_INPUT * POLY_CHANNELS];
             }
 			else if (channels >= channel) {
-				return OL_statePoly[HLD_INPUT * POLY_CHANNELS + channel] > 5.f ? 10.f : 0.f;
+				hld = OL_statePoly[HLD_INPUT * POLY_CHANNELS + channel];
+				if (getStateJson(SMART_HOLD_JSON) == 1.0f) {
+					if (haveEditHld) {
+						if (hld <= 7.5f) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				}
             }
 		}
-		return 0.f;
+		return (hld > 5.f);
 	}
 
 	inline float getChannelRec(int channel)
@@ -374,6 +406,7 @@ struct Morpheus : Module
 
 	inline void shiftChannel(int channel, int direction)
 	{
+		// DEBUG("shiftChannel(%d,%d)", channel, direction);
 		int loopLen = getChannelLoopLength(channel);
 		int start = STEPS_JSON + channel * MAX_LOOP_LEN;
 		
@@ -447,6 +480,9 @@ struct Morpheus : Module
 			for (int i = HEAD_JSON; i < HEAD_JSON + POLY_CHANNELS; i++) {
 				setStateJson(i, 0.f);
 			}
+			for (int channel = 0; channel < getOutPolyChannels(GATE_OUTPUT); channel ++) {
+				outputs[GATE_OUTPUT].setVoltage (0.f, channel);
+			}
 			hadReset = true;
 		}
 
@@ -466,15 +502,20 @@ struct Morpheus : Module
 		}
 
 		// Handle HLD_ON Button presses
-		if (inChangeParam (HLD_ON_PARAM)) {	//	User clicked on tr/gt button
+		if (inChangeParam (HLD_ON_PARAM)) {	//	User clicked on HLD button
 			setStateJson (HLD_ON_JSON, getStateParam(HLD_ON_PARAM));
+		}
+		else {
+			haveEditHld = checkForEditHld();
 		}
 
 		// Handle Shift
         for (int channel = 0; channel < polyChannels; channel ++) {
 
 			// Do not Shift channels on hold
-			if (getChannelHld(channel) > 5.f) continue;
+			if (getChannelHld(channel)) {
+				continue;
+			}
 
 			// Shift all channels left if button is pressed
 			if(changeParam(SHIFT_LEFT_PARAM) && getStateParam(SHIFT_LEFT_PARAM) > 0.f) {
@@ -482,16 +523,22 @@ struct Morpheus : Module
 			}
 			// Shift channel on polyphonic shift left input
             if (getInputConnected(SHIFT_LEFT_INPUT)) {
-                if (channel < inputs[SHIFT_LEFT_INPUT].getChannels()) { 
-                    if (OL_statePoly[SHIFT_LEFT_INPUT * POLY_CHANNELS + channel] > 0.f) {
-						if (!isShiftLeft[channel]) {
-		                    shiftChannel(channel, 1);
-							isShiftLeft[channel] = true;
-						}
-						else{
-							isShiftLeft[channel] = false;
-						}
+				int channels = inputs[SHIFT_LEFT_INPUT].getChannels();
+				float state;
+				if (channels == 1) {
+					state = OL_statePoly[SHIFT_LEFT_INPUT * POLY_CHANNELS];
+				}
+				else {
+					state = OL_statePoly[SHIFT_LEFT_INPUT * POLY_CHANNELS] + channel;
+				}
+				if (state > 0.f) {
+					if (!isShiftLeft[channel]) {
+						shiftChannel(channel, 1);
+						isShiftLeft[channel] = true;
 					}
+				}
+				else {
+						isShiftLeft[channel] = false;
 				}
             }
 
@@ -501,32 +548,45 @@ struct Morpheus : Module
 			}
 			// shift channel on polyphonic shift right input
             if (getInputConnected(SHIFT_RIGHT_INPUT)) {
-                if (channel < inputs[SHIFT_RIGHT_INPUT].getChannels()) {
-                    if (OL_statePoly[SHIFT_RIGHT_INPUT * POLY_CHANNELS + channel] > 0.f) {
-						if (!isShiftRight[channel]) {
-		                    shiftChannel(channel, -1);
-							isShiftRight[channel] = true;
-						}
-						else{
-							isShiftRight[channel] = false;
-						}
+				int channels = inputs[SHIFT_RIGHT_INPUT].getChannels();
+				float state;
+				if (channels == 1) {
+					state = OL_statePoly[SHIFT_RIGHT_INPUT * POLY_CHANNELS];
+				}
+				else {
+					state = OL_statePoly[SHIFT_RIGHT_INPUT * POLY_CHANNELS] + channel;
+				}
+				if (state > 0.f) {
+					if (!isShiftRight[channel]) {
+						shiftChannel(channel, -1);
+						isShiftRight[channel] = true;
 					}
+				}
+				else{
+					isShiftRight[channel] = false;
 				}
             }
         }
 
 		if (getInputConnected(MEM_INPUT)) {
-			int m = floor(getStateInput(MEM_INPUT) * 10.f); // input is scaled so 1.6 is mem slot 16
-			if (m < 1) m = 1;
-			if (m > MEM_SLOTS) m = MEM_SLOTS;
-			if (getStateJson(ACTIVE_MEM_JSON) != m - 1.f) {
-				setStateJson(SELECTED_MEM_JSON, m - 1.f);
-				setStateJson(ACTIVE_MEM_JSON, m - 1.f);
-				if (getStateJson(LOAD_ON_MEM_CV_CHANGE_JSON) == 1.0f) {
+			int mem;
+			if (getStateJson(MEM_IS_HALFTONES_JSON) == 1.0f) {
+				mem = note(getStateInput(MEM_INPUT)) + 1;
+			}
+			else {
+				mem = floor(getStateInput(MEM_INPUT) * 10.f); // input is scaled so 1.6 is mem slot 16
+			}
+			if (mem < 1) mem = 1;
+			if (mem > MEM_SLOTS) mem = MEM_SLOTS;
+			if (int(round(getStateJson(SELECTED_MEM_JSON))) != mem - 1) {
+				setStateJson(SELECTED_MEM_JSON, mem - 1.f);
+				if (getStateJson(RECALL_ON_MEM_CV_CHANGE_JSON) == 1.0f) {
+					setStateJson(ACTIVE_MEM_JSON, mem - 1.f);
+				}
+				else if (getStateJson(LOAD_ON_MEM_CV_CHANGE_JSON) == 1.0f) {
+					setStateJson(ACTIVE_MEM_JSON, mem - 1.f);
 					for (int channel = 0; channel < polyChannels; channel++) {
-						if (getChannelHld(channel) < 5.f) {
-							loadChannel(channel);
-						}
+						loadChannel(channel);
 					}
 				}
 			}
@@ -544,15 +604,15 @@ struct Morpheus : Module
 				setStateJson(SELECTED_MEM_JSON, fmod(getStateJson(SELECTED_MEM_JSON) + MEM_SLOTS + upDown, MEM_SLOTS));
 			}
 		}
-		selectedMem = getStateJson(SELECTED_MEM_JSON) + 1.f;
+		selectedMem = getStateJson(SELECTED_MEM_JSON) + 1.f;	// Used in MEM Widget Display
 
-		// Handel MEM RCL
+		// Handle MEM RCL
 		if ((changeParam(RCL_PARAM) && (getStateParam(RCL_PARAM) > 0.f)) || 
 		    (getInputConnected(RCL_INPUT) && changeInput (RCL_INPUT) && (getStateInput(RCL_INPUT) > 0.f))
 		   ) {
 			if (getStateJson(SELECTED_MEM_JSON) == getStateJson(ACTIVE_MEM_JSON)) {
 				for (int channel = 0; channel < polyChannels; channel++) {
-					if (getChannelHld(channel) < 5.f) {
+					if (!getChannelHld(channel) || getStateJson(LOAD_HLD_CHANNELS_JSON) == 1.0f) {
 						loadChannel(channel);
 					}
 				}
@@ -562,7 +622,7 @@ struct Morpheus : Module
 			}
 		}	
 
-		// Handel MEM STO
+		// Handle MEM STO
 		if((changeParam(STO_PARAM) && (getStateParam(STO_PARAM) > 0.f)) || 
 		   (getInputConnected(STO_INPUT) && changeInput (STO_INPUT) && (getStateInput(STO_INPUT) > 0.f))
 		  ) {
@@ -592,7 +652,7 @@ struct Morpheus : Module
 				float scl = getChannelScl(channel);
 				float ofs = getChannelOfs(channel);
 				// HLD takes precedence no change of steps when channel is on hold
-				if (getChannelHld(channel) < 5.f) {
+				if (!getChannelHld(channel)) {
 					if (getStateJson(EXT_ON_JSON) > 0.f && getChannelRec(channel) > 5.f) {
 						// User is holding REC and External Source is enabled, so copy xternal Source to step
 						setStateJson(STEPS_JSON + MAX_LOOP_LEN * channel + head, OL_statePoly[EXT_INPUT * POLY_CHANNELS + channel]);
@@ -879,6 +939,23 @@ struct MorpheusWidget : ModuleWidget
 		}
 	};
 
+	struct RecallOnMemCvChangeItem : MenuItem
+	{
+		Morpheus *module;
+		void onAction(const event::Action &e) override
+		{
+			if (module->OL_state[RECALL_ON_MEM_CV_CHANGE_JSON] == 0.f)
+				module->OL_setOutState(RECALL_ON_MEM_CV_CHANGE_JSON, 1.f);
+			else
+				module->OL_setOutState(RECALL_ON_MEM_CV_CHANGE_JSON, 0.f);
+		}
+		void step() override
+		{
+			if (module)
+				rightText = (module != nullptr && module->OL_state[RECALL_ON_MEM_CV_CHANGE_JSON] == 1.0f) ? "✔" : "";
+		}
+	};
+
 	struct LoadOnMemCvChangeItem : MenuItem
 	{
 		Morpheus *module;
@@ -893,6 +970,57 @@ struct MorpheusWidget : ModuleWidget
 		{
 			if (module)
 				rightText = (module != nullptr && module->OL_state[LOAD_ON_MEM_CV_CHANGE_JSON] == 1.0f) ? "✔" : "";
+		}
+	};
+
+	struct SmartHoldItem : MenuItem
+	{
+		Morpheus *module;
+		void onAction(const event::Action &e) override
+		{
+			if (module->OL_state[SMART_HOLD_JSON] == 0.f)
+				module->OL_setOutState(SMART_HOLD_JSON, 1.f);
+			else
+				module->OL_setOutState(SMART_HOLD_JSON, 0.f);
+		}
+		void step() override
+		{
+			if (module)
+				rightText = (module != nullptr && module->OL_state[SMART_HOLD_JSON] == 1.0f) ? "✔" : "";
+		}
+	};
+
+	struct MemIsHalftonesItem : MenuItem
+	{
+		Morpheus *module;
+		void onAction(const event::Action &e) override
+		{
+			if (module->OL_state[MEM_IS_HALFTONES_JSON] == 0.f)
+				module->OL_setOutState(MEM_IS_HALFTONES_JSON, 1.f);
+			else
+				module->OL_setOutState(MEM_IS_HALFTONES_JSON, 0.f);
+		}
+		void step() override
+		{
+			if (module)
+				rightText = (module != nullptr && module->OL_state[MEM_IS_HALFTONES_JSON] == 1.0f) ? "✔" : "";
+		}
+	};
+
+	struct LoadHldChannelsItem : MenuItem
+	{
+		Morpheus *module;
+		void onAction(const event::Action &e) override
+		{
+			if (module->OL_state[LOAD_HLD_CHANNELS_JSON] == 0.f)
+				module->OL_setOutState(LOAD_HLD_CHANNELS_JSON, 1.f);
+			else
+				module->OL_setOutState(LOAD_HLD_CHANNELS_JSON, 0.f);
+		}
+		void step() override
+		{
+			if (module)
+				rightText = (module != nullptr && module->OL_state[LOAD_HLD_CHANNELS_JSON] == 1.0f) ? "✔" : "";
 		}
 	};
 
@@ -973,10 +1101,30 @@ struct MorpheusWidget : ModuleWidget
 		gateisTrgItem->text = "Output Trg instead of Gate";
 		menu->addChild(gateisTrgItem);
 
+		RecallOnMemCvChangeItem *recallOnMemCvChangeItem = new RecallOnMemCvChangeItem();
+		recallOnMemCvChangeItem->module = module;
+		recallOnMemCvChangeItem->text = "Recall on Mem CV Change";
+		menu->addChild(recallOnMemCvChangeItem);
+
 		LoadOnMemCvChangeItem *loadOnMemCvChangeItem = new LoadOnMemCvChangeItem();
 		loadOnMemCvChangeItem->module = module;
 		loadOnMemCvChangeItem->text = "Load on Mem CV Change";
 		menu->addChild(loadOnMemCvChangeItem);
+
+		SmartHoldItem *smartHoldItem = new SmartHoldItem();
+		smartHoldItem->module = module;
+		smartHoldItem->text = "Smart HLD";
+		menu->addChild(smartHoldItem);
+
+		MemIsHalftonesItem *memIsHalftonesItem = new MemIsHalftonesItem();
+		memIsHalftonesItem->module = module;
+		memIsHalftonesItem->text = "MEM is Note";
+		menu->addChild(memIsHalftonesItem);
+
+		LoadHldChannelsItem *loadHldChannelsItem = new LoadHldChannelsItem();
+		loadHldChannelsItem->module = module;
+		loadHldChannelsItem->text = "Load Channels on HLD";
+		menu->addChild(loadHldChannelsItem);
 
 		spacerLabel = new MenuLabel();
 		menu->addChild(spacerLabel);

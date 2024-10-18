@@ -52,7 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define PRECISION       0.000001f
 
-#define IDLESKIP	32
+#define IDLESKIP		int(rack::settings::sampleRate / 1500)	// we run a bit less than every millisecond	// we run a bit less than every millisecond
 
 #define MAX_TEXT_SIZE  64
 #define TEXT_SCROLL_DELAY   0.5f
@@ -67,6 +67,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define NORMAL_MODE_NONE   0
 #define NORMAL_MODE_ONE    1
 #define NORMAL_MODE_LAST   2
+
+#define SEMITONE       (1.f / 12.f)
 
 /*
 	Random implementation derived from the one used in Frozen Wastland Seeds of Change
@@ -195,6 +197,8 @@ typedef struct OrangeLineRandom {
 }
 
 #define PANELHEIGHT 128.5f
+
+#define OFFSET_NULL 0.f
 #define OFFSET_PJ301MPort 4.2
 #define OFFSET_Trimpot 3.15
 #define OFFSET_RoundSmallBlackKnob 4.0
@@ -228,6 +232,7 @@ struct NumberWidget : TransparentWidget {
 	float	   *pStyle = nullptr;
 	bool 		customForegroundColor = false;
 	NVGcolor 	foregroundColor = nvgRGB(0,0,0);
+	float       fontSize;
 
 	static NumberWidget* create (Vec pos, Module *module, float *pValue, float defaultValue, const char *format, char *buffer, int length) {
 		NumberWidget *w = new NumberWidget();
@@ -240,6 +245,7 @@ struct NumberWidget : TransparentWidget {
 		w->format   = format;
 		w->buffer   = buffer;
 		w->length   = length;
+		w->fontSize = 18.f;
 
 #if defined(METAMODULE)
 		w->box.pos.y  -= mm2px(7);
@@ -263,7 +269,7 @@ struct NumberWidget : TransparentWidget {
 		}
 		std::shared_ptr<Font> pFont = APP->window->loadFont(asset::plugin(pluginInstance, "res/repetition-scrolling.regular.ttf"));
 		nvgFontFaceId (drawArgs.vg, pFont->handle);
-		nvgFontSize (drawArgs.vg, 18);
+		nvgFontSize (drawArgs.vg, fontSize);
 		if (customForegroundColor) {
 			nvgFillColor (drawArgs.vg, foregroundColor);
 		}
