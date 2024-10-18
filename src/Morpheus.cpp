@@ -40,7 +40,7 @@ struct Morpheus : Module
 	*/
 	bool widgetReady = false;
 	float selectedMem = 1.f;
-	NumberWidget *memWidget;
+	NumberWidget *memWidget = nullptr;
 
 #include "MorpheusJsonLabels.hpp"
 
