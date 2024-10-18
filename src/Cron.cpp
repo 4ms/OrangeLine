@@ -35,10 +35,10 @@ struct Cron : Module
 	bool widgetReady = false;
 
     float selectedChannel = 1.f;
-   	NumberWidget *chlWidget;
+   	NumberWidget *chlWidget = nullptr;
 
     float latency = 0.f;
-   	NumberWidget *latencyWidget;
+   	NumberWidget *latencyWidget = nullptr;
 
     bool  running = true;
     int   sampleCount = 0;
