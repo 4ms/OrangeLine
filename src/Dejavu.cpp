@@ -1096,29 +1096,29 @@ struct LeftWidget : TransparentWidget {
 			if (paramDisplayCycles > 0) {
 				module->greetingCycles = 0;
 				ParamQuantity *pq = module->paramQuantities[param];
-				const char *label = pq->getLabel().c_str();
+				std::string label = pq->getLabel();
 				const char *unit  = pq->unit.data();
 
 				if (!redParam (param)) {
 					if (*unit != '\0')
-						snprintf (headBuffer, 17, "%s[%s]:", label, unit);
+						snprintf (headBuffer, 17, "%s[%s]:", label.c_str(), unit);
 					else
-						snprintf (headBuffer, 17, "%s:", label);
+						snprintf (headBuffer, 17, "%s:", label.c_str());
 				}
 				else {
 					if (param == HEAT_PARAM)
 						snprintf (headBuffer, 17, "Alpha[%s]:", "%");
 					else {
 						if (moduleState == STATE_EDIT_RANGES)
-							snprintf (headBuffer, 17, "Max %s:", label);
+							snprintf (headBuffer, 17, "Max %s:", label.c_str());
 						else
-							snprintf (headBuffer, 17, "Ofs %s:", label);
+							snprintf (headBuffer, 17, "Ofs %s:", label.c_str());
 					}
 				}
 
 				float value = module->getStateParam (param);
 				if (param == SEED_PARAM)
-					sprintf (valueBuffer, "%08lX", (unsigned long)(module->getStateParam (param)));
+					snprintf (valueBuffer, 17, "%08lX", (unsigned long)(module->getStateParam (param)));
 				else {
 					if (value == float(int(value)))
 						snprintf (valueBuffer, 17, "%8.0lf", module->getStateParam (param));
@@ -1137,7 +1137,7 @@ struct LeftWidget : TransparentWidget {
 					else {
 						if (module->p_srcRandomGenerator != nullptr) {
 							strncpy (headBuffer, module->displayHeading, 17);
-							sprintf (valueBuffer, "%08lX", module->p_srcRandomGenerator->latestSeed);
+							snprintf (valueBuffer, 17, "%08lX", module->p_srcRandomGenerator->latestSeed);
 						}
 						else {
 							strcpy(valueBuffer, "null");
