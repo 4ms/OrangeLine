@@ -154,6 +154,25 @@ struct Morpheus : Module
    		configParam (SCL_PARAM,       -10.f,  10.f, 10.f, "Random CV Scale",          "", 0.f, 1.f, 0.f);
    		configParam (OFS_PARAM,       -10.f,  10.f,  0.f, "Random CV Offset",         "", 0.f, 1.f, 0.f);
 
+		configInput(LOCK_INPUT, "Lock In");
+		configInput(BALANCE_INPUT, "Balance CV In");
+		configInput(LOOP_LEN_INPUT, "Loop Length CV In");
+		configInput(HLD_INPUT, "Hold Gate In");
+		configInput(RND_INPUT, "Random Gate In");
+		configInput(SHIFT_LEFT_INPUT, "Shift Left Gate In");
+		configInput(SHIFT_RIGHT_INPUT, "Shift Right Gate In");
+		configInput(CLR_INPUT, "Clear Gate In");
+		configInput(EXT_INPUT, "MEM/EXT Gate In");
+		configInput(REC_INPUT, "Record Gate In");
+		configInput(GTP_INPUT, "Probability CV In");
+		configInput(SCL_INPUT, "Random Scaling CV In");
+		configInput(OFS_INPUT, "Random Offset CV In");
+		configInput(MEM_INPUT, "Memory Slot CV In");
+		configInput(STO_INPUT, "Store Gate In");
+		configInput(RCL_INPUT, "Recall Gate In");
+		configInput(RST_INPUT, "Reset Gate In");
+		configInput(CLK_INPUT, "Clock In");
+
    		configOutput (SRC_OUTPUT, "Source (Ext/Active Memory Slot)");
    		configOutput (GATE_OUTPUT, "Gate");
 		configOutput (CV_OUTPUT, "CV");
