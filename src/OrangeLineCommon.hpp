@@ -37,8 +37,8 @@ bool  OL_inputConnected [NUM_INPUTS];	//	flags to remember connected inputs
 char  *OL_jsonLabel     [NUM_JSONS];	//	lables of json state properties
 unsigned long OL_customChangeMask[NUM_PARAMS + NUM_INPUTS];	// bitmask to speed up change detection in process
 unsigned long OL_customChangeBits = 0;		// change bits set based on OL_customChangeMasks
-dsp::SchmittTrigger *OL_inStateTrigger  [NUM_TRIGGERS];	//	trigger objects for param (buttons) and inputs (triggers)
-dsp::PulseGenerator *OL_outStateTrigger [NUM_OUTPUTS];	//	pulse generator objects for outputs (triggers)
+dsp::SchmittTrigger *OL_inStateTrigger  [NUM_TRIGGERS] = {};	//	trigger objects for param (buttons) and inputs (triggers)
+dsp::PulseGenerator *OL_outStateTrigger [NUM_OUTPUTS] = {};	//	pulse generator objects for outputs (triggers)
 bool OL_isGate [NUM_OUTPUTS];
 bool OL_wasTriggered [NUM_OUTPUTS];		// remember whether we triggered once at all only set when triggerd but never reset
 bool OL_isPoly [NUM_INPUTS + NUM_OUTPUTS];
@@ -51,8 +51,8 @@ const char *notes[NUM_NOTES] = {"C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", 
 /*
 	Poly data
 */
-dsp::SchmittTrigger *OL_inStateTriggerPoly  [NUM_INPUTS * POLY_CHANNELS];	//	trigger objects for param (buttons) and inputs (triggers)
-dsp::PulseGenerator *OL_outStateTriggerPoly [NUM_OUTPUTS * POLY_CHANNELS];	//	pulse generator objects for outputs (triggers)
+dsp::SchmittTrigger *OL_inStateTriggerPoly  [NUM_INPUTS * POLY_CHANNELS] = {};	//	trigger objects for param (buttons) and inputs (triggers)
+dsp::PulseGenerator *OL_outStateTriggerPoly [NUM_OUTPUTS * POLY_CHANNELS] = {};	//	pulse generator objects for outputs (triggers)
 float OL_statePoly          [(NUM_INPUTS + NUM_OUTPUTS) * POLY_CHANNELS];	//	state values
 bool  OL_inStateChangePoly  [NUM_INPUTS * POLY_CHANNELS];	//	flags to control processing for incoming state changes
 bool  OL_outStateChangePoly [NUM_OUTPUTS * POLY_CHANNELS];	//	flags to control reflection for outgoing state changes
@@ -217,6 +217,14 @@ inline void initStateTypes () {
 	Allocate triggers and pulse generators
 */
 inline void allocateTriggers () {
+	//	Null all slots first: the loops below only initialize the slots on the
+	//	branch they take (e.g. a non-poly input leaves its poly slots untouched),
+	//	and OL_triggerGuard deletes every slot unconditionally.
+	memset (    OL_inStateTrigger,     0, sizeof (OL_inStateTrigger));
+	memset (   OL_outStateTrigger,     0, sizeof (OL_outStateTrigger));
+	memset ( OL_inStateTriggerPoly,    0, sizeof (OL_inStateTriggerPoly));
+	memset (OL_outStateTriggerPoly,    0, sizeof (OL_outStateTriggerPoly));
+
 	for (int paramIdx = 0; paramIdx < NUM_PARAMS; paramIdx++) {
 		if (getStateTypeParam (paramIdx) == STATE_TYPE_TRIGGER)
 			OL_inStateTrigger[paramIdx] = new dsp::SchmittTrigger();
@@ -256,6 +264,30 @@ inline void allocateTriggers () {
 		}
 	}
 }
+
+/*
+	Frees the triggers and pulse generators from allocateTriggers() when the
+	module is destroyed. A member object is used because this file is included
+	inside each module struct, so a real ~<module_name>() destructor cannot be
+	declared here. Unused slots are nullptr (arrays are zero-initialized and
+	allocateTriggers nulls them again), so deleting every slot is safe.
+*/
+struct OL_TriggerGuard {
+	dsp::SchmittTrigger **inState;
+	dsp::PulseGenerator **outState;
+	dsp::SchmittTrigger **inStatePoly;
+	dsp::PulseGenerator **outStatePoly;
+	~OL_TriggerGuard () {
+		for (int i = 0; i < NUM_TRIGGERS; i++)
+			delete inState[i];
+		for (int i = 0; i < NUM_OUTPUTS; i++)
+			delete outState[i];
+		for (int i = 0; i < NUM_INPUTS * POLY_CHANNELS; i++)
+			delete inStatePoly[i];
+		for (int i = 0; i < NUM_OUTPUTS * POLY_CHANNELS; i++)
+			delete outStatePoly[i];
+	}
+} OL_triggerGuard {OL_inStateTrigger, OL_outStateTrigger, OL_inStateTriggerPoly, OL_outStateTriggerPoly};
 
 /**
 	Method to configure json labels
